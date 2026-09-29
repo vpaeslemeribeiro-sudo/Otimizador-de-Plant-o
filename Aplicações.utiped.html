@@ -1,0 +1,2682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hub Clínico Pediátrico & Neonatal - UTI e Emergência</title>
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-dark: #1e3a8a;
+      --primary-light: #3b82f6;
+      --teal-primary: #0f766e;
+      --purple-primary: #7e22ce;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --accent-bg: #eff6ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+
+    header.hub-header {
+      background: linear-gradient(135deg, #1e3a8a, #0f766e);
+      color: #fff;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .hub-title-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .hub-title-box h1 { font-size: 1.15rem; font-weight: 700; }
+    .hub-title-box p { font-size: 0.74rem; color: #cbd5e1; }
+    .hub-badge-offline { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); padding: 3px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+
+    .nav-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      align-items: center;
+    }
+    .nav-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 7px 12px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .nav-btn:hover { background: #f1f5f9; color: var(--text); }
+    .nav-btn.active { background: var(--accent-bg); color: var(--primary); border-color: #bfdbfe; }
+    .nav-btn.special { color: var(--purple-primary); border-color: #f3e8ff; background: #faf5ff; }
+    .nav-btn.danger { color: var(--danger); border-color: #fee2e2; background: #fff1f2; }
+
+    main.hub-container { flex: 1; max-width: 1200px; width: 100%; margin: 0 auto; padding: 16px; }
+
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.15s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card { background: #fff; border-radius: 10px; border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.03); padding: 18px; margin-bottom: 16px; }
+    .card h2 { font-size: 1.15rem; color: var(--primary-dark); margin-bottom: 4px; font-weight: 700; }
+    .card p.desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 14px; }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 12px; }
+    .tool-tile {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .tool-tile:hover { border-color: var(--primary-light); transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+    .tool-cat { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; color: var(--teal-primary); margin-bottom: 2px; }
+    .tool-cat.gem { color: var(--purple-primary); }
+    .tool-cat.emerg { color: var(--danger); }
+    .tool-name { font-size: 1rem; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .tool-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; margin-bottom: 10px; }
+    .tool-action { font-size: 0.78rem; font-weight: 700; color: var(--primary); }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .form-group { margin-bottom: 10px; display: flex; flex-direction: column; }
+    label { font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px; }
+    input[type="text"], input[type="number"], select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary-light); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15); }
+    input[readonly] { background-color: #f1f5f9; color: #64748b; font-weight: 600; cursor: not-allowed; }
+
+    .input-plus-group { display: flex; gap: 6px; align-items: center; }
+    .btn-plus {
+      background: var(--primary-light);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      width: 38px;
+      height: 38px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .btn-plus:hover { background: var(--primary); }
+    .btn-plus:active { transform: scale(0.95); }
+
+    .btn {
+      padding: 9px 14px;
+      border-radius: 6px;
+      border: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn:active { transform: scale(0.99); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-teal { background: var(--teal-primary); color: #fff; }
+    .btn-teal:hover { background: #115e59; }
+    .btn-purple { background: var(--purple-primary); color: #fff; }
+    .btn-purple:hover { background: #6b21a8; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-outline { background: #fff; border: 1px solid var(--border-dark); color: var(--text); }
+    .btn-outline:hover { background: #f8fafc; }
+
+    .btn-group-time { display: flex; gap: 4px; height: 38px; }
+    .btn-time {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .btn-time.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .result-box { background: var(--accent-bg); border: 1px solid #bfdbfe; border-radius: 8px; padding: 14px; margin-top: 12px; }
+    .result-box.success { background: #f0fdf4; border-color: #bbf7d0; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { background: #f1f5f9; color: #334155; padding: 8px 10px; text-align: left; border-bottom: 2px solid var(--border-dark); }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    .pcr-card { background: #1e293b; color: #f8fafc; border-radius: 8px; padding: 12px; border: 1px solid #334155; }
+    .pcr-card-title { font-weight: 800; font-size: 0.95rem; color: #fff; }
+    .pcr-card-pres { font-size: 0.75rem; color: #38bdf8; font-weight: 600; }
+    .pcr-card-ind { font-size: 0.72rem; color: #94a3b8; margin: 4px 0; }
+    .pcr-card-res { background: #0f172a; padding: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; border: 1px solid #334155; }
+    .pcr-val { font-size: 1.45rem; font-weight: 900; color: #facc15; }
+
+    #folhaImpressaoPCR { display: none; }
+
+    @media print {
+      body { background: #ffffff !important; color: #000000 !important; padding: 0 !important; }
+      header.hub-header, nav.nav-bar, main.hub-container { display: none !important; }
+      #folhaImpressaoPCR { display: block !important; width: 100% !important; padding: 10px !important; color: #000000 !important; }
+      .print-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }
+      .print-table th, .print-table td { border: 1px solid #000000; padding: 5px 6px; text-align: left; }
+      .print-table th { background-color: #f1f5f9 !important; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .print-highlight { font-size: 14px; font-weight: 900; }
+      .print-box-header { border: 2px solid #000; padding: 8px 12px; border-radius: 6px; margin-bottom: 10px; }
+    }
+
+    .toast-popup {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #0f172a;
+      color: #fff;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: none;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      z-index: 9999;
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      header.hub-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="hubToast" class="toast-popup">Copiado para a área de transferência!</div>
+
+  <!-- CABEÇALHO -->
+  <header class="hub-header">
+    <div class="hub-title-box" onclick="navegarPara('dashboard')">
+      <div style="font-size: 1.4rem;">🏥</div>
+      <div>
+        <h1>Central de Ferramentas Clínicas Pediátricas & Neonatais</h1>
+        <p>Calculadoras Críticas • Emergência, UTI & Nefrologia • 100% Offline</p>
+      </div>
+    </div>
+    <span class="hub-badge-offline">Modo Offline Pronto</span>
+  </header>
+
+  <!-- NAVEGAÇÃO -->
+  <nav class="nav-bar">
+    <button class="nav-btn active" onclick="navegarPara('dashboard')">🏠 Painel</button>
+    <button class="nav-btn special" onclick="navegarPara('exames')">🔬 Transcritor de Exames</button>
+    <button class="nav-btn danger" onclick="navegarPara('pcr')">🚨 Emergência & PCR</button>
+    <button class="nav-btn" onclick="navegarPara('balanco')">💧 Balanço & SV</button>
+    <button class="nav-btn" onclick="navegarPara('ictericia')">💡 Fototerapia (AAP/Maisels)</button>
+    <button class="nav-btn" onclick="navegarPara('nefro')">🧪 Distúrbios Eletrolíticos</button>
+    <button class="nav-btn" onclick="navegarPara('diluicao')">💉 Diluição IV (55+)</button>
+    <button class="nav-btn" onclick="navegarPara('infusao')">⚡ Infusão Contínua</button>
+    <button class="nav-btn" onclick="navegarPara('drogas')">💊 Doses em Pediatria</button>
+    <button class="nav-btn" onclick="navegarPara('pim2')">📈 PIM 2</button>
+    <button class="nav-btn" onclick="navegarPara('intergrowth')">👶 INTERGROWTH-21st</button>
+    <button class="nav-btn" onclick="navegarPara('tig')">🍼 TIG Neonatal</button>
+    <button class="nav-btn" onclick="navegarPara('cateter')">📏 Cateter Umbilical</button>
+  </nav>
+
+  <main class="hub-container">
+
+    <!-- 0. DASHBOARD -->
+    <section id="view-dashboard" class="view-section active">
+      <div class="card">
+        <h2>Selecione uma Ferramenta de Trabalho</h2>
+        <p class="desc">Acesse rapidamente as ferramentas de suporte clínico para UTI Pediátrica, Neonatologia, Emergência e Nefrologia.</p>
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="filtroHub" placeholder="🔍 Filtrar por nome ou funcionalidade..." oninput="filtrarCardsHub()">
+        </div>
+
+        <div class="dashboard-grid" id="gridCardsHub">
+          <div class="tool-tile" onclick="navegarPara('exames')" data-tags="transcritor exames laboratoriais hemograma leucograma gasometria alertas plantao bioquimica eletrolitos gem">
+            <div>
+              <div class="tool-cat gem">Transcritor Oficial Gem</div>
+              <div class="tool-name">Transcritor de Exames Laboratoriais</div>
+              <div class="tool-desc">Gera linha única contínua com diferencial completo (absoluto e percentual), bioquímica e alertas objetivos para o plantão.</div>
+            </div>
+            <div class="tool-action" style="color:var(--purple-primary);">Abrir transcritor &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('pcr')" data-tags="pcr parada choque desfibrilacao adrenalina amiodarona intubacao convulsao naloxona flumazenil impressao leito folha">
+            <div>
+              <div class="tool-cat emerg">Emergência & UTI</div>
+              <div class="tool-name">Emergência & PCR Pediátrica</div>
+              <div class="tool-desc">Desfibrilação, drogas de PCR, intubação e botão para impressão de folha de parada de beira do leito para a enfermagem[span_0](start_span)[span_0](end_span).</div>
+            </div>
+            <div class="tool-action" style="color:var(--danger);">Abrir emergência &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('balanco')" data-tags="balanco hidrico sinais vitais holliday segar diurese uti pam fc fr sat hgt 6h 12h 24h">
+            <div>
+              <div class="tool-cat">UTI Pediátrica & Neonatal</div>
+              <div class="tool-name">Balanço Hídrico & Sinais Vitais</div>
+              <div class="tool-desc">Sinais vitais em linha, seletores diretos de 6h/12h/24h, cálculo de Holliday-Segar, diurese e laudo.</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('ictericia')" data-tags="ictericia fototerapia bilirrubina exsanguineotransfusao neonatologia aap maisels bhutani">
+            <div>
+              <div class="tool-cat">Neonatologia</div>
+              <div class="tool-name">Fototerapia Neonatal (Icterícia)</div>
+              <div class="tool-desc">Curvas AAP 2022 (com e sem fatores de risco) e protocolos para prematuros &lt;35 semanas (Maisels e NICE)[span_1](start_span)[span_1](end_span).</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('nefro')" data-tags="disturbios eletroliticos nefrologia gasometria sodio potassio calcio magnesio schwartz anion gap fracao excrecao">
+            <div>
+              <div class="tool-cat">Nefrologia & UTI</div>
+              <div class="tool-name">Distúrbios Eletrolíticos & Nefrologia</div>
+              <div class="tool-desc">Déficits de Na⁺, K⁺, Ca²⁺, Mg²⁺, gasometria com Anion Gap Stewart-Fencl, Schwartz e frações de excreção[span_2](start_span)[span_2](end_span).</div>
+            </div>
+            <div class="tool-action">Abrir nefrologia &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('diluicao')" data-tags="diluicao intravenosa antibioticos sedativos modelo prescricao prontuario">
+            <div>
+              <div class="tool-cat">Farmacologia Clínica</div>
+              <div class="tool-name">Calculadora de Diluição IV</div>
+              <div class="tool-desc">Calcula volumes usuais e mínimos de 55+ fármacos e gera modelos prontos de prescrição.</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('infusao')" data-tags="infusao continua vasoativos adrenalina noradrenalina dobutamina fentanil midazolam dose usual">
+            <div>
+              <div class="tool-cat">Farmacologia & UTI</div>
+              <div class="tool-name">Dose de Infusão Contínua</div>
+              <div class="tool-desc">Exibe exclusivamente a dose e unidade usual de cada fármaco (mcg/kg/min, mcg/kg/h ou mg/kg/h).</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('drogas')" data-tags="doses medicamentos em pediatria intermitentes ceftriaxona ampicilina meropenem dose desejada prescricao">
+            <div>
+              <div class="tool-cat">Prescrição Pediátrica</div>
+              <div class="tool-name">Doses Medicamentos em Pediatria</div>
+              <div class="tool-desc">Doses com faixas variáveis, campo para dose desejada (kg/dose ou kg/dia) e diluição automática.</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('pim2')" data-tags="pim 2 escore utip mortalidade gravidade terapia intensiva slater">
+            <div>
+              <div class="tool-cat">UTI Pediátrica</div>
+              <div class="tool-name">Escore PIM 2</div>
+              <div class="tool-desc">Paediatric Index of Mortality 2 canônico (Slater 2003) para admissões na UTIP.</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('intergrowth')" data-tags="intergrowth rn recem nascido antropometria peso comprimento perimetro cefalico pig aig gig fenton">
+            <div>
+              <div class="tool-cat">Neonatologia</div>
+              <div class="tool-name">INTERGROWTH-21st (RN)</div>
+              <div class="tool-desc">Classificação antropométrica de 33 a 42 semanas e detecção de RCIU.</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('tig')" data-tags="tig taxa infusao glicose eletrolitos sodio potassio cloro sbp neonatologia sg5 g50">
+            <div>
+              <div class="tool-cat">Neonatologia</div>
+              <div class="tool-name">TIG & Eletrólitos Neonatais (SBP)</div>
+              <div class="tool-desc">Cálculo de TIG (SG 5% + G 50%) e necessidades de Na⁺, K⁺ e Cl⁻ (SBP).</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+
+          <div class="tool-tile" onclick="navegarPara('cateter')" data-tags="cateterismo umbilical venoso arterial alto baixo ombro umbigo pop neonatologia">
+            <div>
+              <div class="tool-cat">Neonatologia</div>
+              <div class="tool-name">Cateterismo Umbilical</div>
+              <div class="tool-desc">Inserção para Cateter Venoso e Arterial por Peso e Ombro-Umbigo (POP-PB).</div>
+            </div>
+            <div class="tool-action">Abrir calculadora &rarr;</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1. TRANSCRITOR DE EXAMES -->
+    <section id="view-exames" class="view-section">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h2>🔬 Transcritor de Exames Laboratoriais</h2>
+            <p class="desc" style="margin-bottom:0;">Gera a transcrição contínua oficial com Hemograma completo, diferencial, gasometria e alertas para o plantão.</p>
+          </div>
+          <button class="btn btn-outline" onclick="zerarTranscritor()">🔄 Limpar / Novo Exame</button>
+        </div>
+
+        <div class="grid-2" style="margin-top:12px;">
+          <div class="form-group">
+            <label for="exameData">Data do Exame (DD/MM/AAAA)</label>
+            <input type="text" id="exameData" placeholder="Ex: 23/09/2026">
+          </div>
+          <div class="form-group">
+            <label for="exameHora">Hora da Coleta (HH:MM)</label>
+            <input type="text" id="exameHora" placeholder="Ex: 20:46">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="textoLaudoBruto">Cole aqui o laudo completo (ou o texto do exame):</label>
+          <textarea id="textoLaudoBruto" rows="7" placeholder="Cole aqui os exames colados do laboratório ou do Gem..."></textarea>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-purple" onclick="processarTranscritorGem()">⚡ Transcrever no Padrão do Gem</button>
+          <button class="btn btn-outline" onclick="abrirGemOficial()">Abrir Gem no Gemini ↗</button>
+          <button class="btn btn-outline" onclick="zerarTranscritor()">Limpar</button>
+        </div>
+
+        <div style="margin-top:10px; font-size:0.75rem; color:var(--text-muted);">
+          <span>Link do seu Gem compartilhado: </span>
+          <input type="text" id="linkGemPersonalizado" placeholder="Cole o link de compartilhamento do seu Gem aqui..." style="font-size:0.75rem; padding:4px 8px; width:60%; display:inline-block;" onchange="salvarLinkGem()">
+        </div>
+
+        <div id="resultadoTranscritorContainer" style="display:none; margin-top:16px;">
+          <div class="result-box" style="margin-top:0; background:#f5f3ff; border-color:#ddd6fe;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <span style="font-weight:700; font-size:0.85rem; color:#5b21b6;">Resultado Transcrito para Prontuário:</span>
+              <button class="btn btn-purple" style="padding:5px 12px; font-size:0.78rem;" onclick="copiarTexto('textoLaudoTranscritoFinal')">📋 Copiar Texto Completo</button>
+            </div>
+            <textarea id="textoLaudoTranscritoFinal" rows="10" readonly style="font-family: monospace; font-size: 0.86rem; background:#fff; font-weight:600; color:#1e1b4b; line-height:1.5;"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. EMERGÊNCIA & PCR PEDIÁTRICA -->
+    <section id="view-pcr" class="view-section">
+      <div class="card" style="border-top: 4px solid var(--danger);">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+          <div>
+            <h2 style="color:var(--danger);">🚨 Emergência & PCR Pediátrica</h2>
+            <p class="desc" style="margin-bottom:0;">Cálculo imediato de choque, drogas de ressuscitação, sequência rápida de intubação e reversores[span_3](start_span)[span_3](end_span).</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label style="margin:0; font-weight:700;">PESO:</label>
+            <input type="number" id="pcr_peso" value="20" min="1" max="150" step="0.5" style="width:90px; font-weight:800; text-align:center; font-size:1.1rem;" oninput="calcularPCR()">
+            <span style="font-weight:700;">kg</span>
+            <button class="btn btn-danger" onclick="imprimirFolhaParada()" title="Imprimir folha de leito para a enfermagem">🖨️ Imprimir Folha de Parada (Beira do Leito)</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;">
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(5)">5 kg</button>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(10)">10 kg</button>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(15)">15 kg</button>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(20)">20 kg</button>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(30)">30 kg</button>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="setPcrPeso(40)">40 kg</button>
+        </div>
+
+        <div style="font-weight:700; color:var(--warning); font-size:0.85rem; text-transform:uppercase; margin-bottom:6px;">⚡ Desfibrilação Elétrica (FV / TV sem Pulso)[span_4](start_span)[span_4](end_span)</div>
+        <div class="grid-2" style="margin-bottom:14px;">
+          <div class="pcr-card" style="border-color:#b45309; background:#1c1917;">
+            <div class="pcr-card-title">1º CHOQUE (2 J/kg)[span_5](start_span)[span_5](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_choque1">40</span><span>Joules</span></div>
+          </div>
+          <div class="pcr-card" style="border-color:#b45309; background:#1c1917;">
+            <div class="pcr-card-title">2º CHOQUE e seguintes (4 J/kg)[span_6](start_span)[span_6](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_choque2">80</span><span>Joules</span></div>
+          </div>
+        </div>
+
+        <div style="font-weight:700; color:var(--danger); font-size:0.85rem; text-transform:uppercase; margin-bottom:6px;">💉 Drogas de PCR & Ressuscitação[span_7](start_span)[span_7](end_span)</div>
+        <div class="grid-3" style="margin-bottom:14px;">
+          <div class="pcr-card">
+            <div class="pcr-card-title">ADRENALINA (1:10.000)[span_8](start_span)[span_8](end_span)</div>
+            <div class="pcr-card-pres">1 ml + 9 ml AD (0,1 mg/ml)[span_9](start_span)[span_9](end_span)</div>
+            <div class="pcr-card-ind">Dose: 0,01 mg/kg (0,1 ml/kg) | Máx 10 ml[span_10](start_span)[span_10](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_adrenalina">2.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">AMIODARONA (50 mg/ml)[span_11](start_span)[span_11](end_span)</div>
+            <div class="pcr-card-pres">Bolus na PCR (5 mg/kg)[span_12](start_span)[span_12](end_span)</div>
+            <div class="pcr-card-ind">Dose máx: 300 mg (6 ml)[span_13](start_span)[span_13](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_amiodarona">2.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">LIDOCAÍNA 1% (10 mg/ml)[span_14](start_span)[span_14](end_span)</div>
+            <div class="pcr-card-pres">Puro bolus (1 mg/kg)[span_15](start_span)[span_15](end_span)</div>
+            <div class="pcr-card-ind">Alternativa à Amiodarona[span_16](start_span)[span_16](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_lidocaina">2.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">GLICOSE 25%[span_17](start_span)[span_17](end_span)</div>
+            <div class="pcr-card-pres">Diluição 1:1 (G50% + AD)[span_18](start_span)[span_18](end_span)</div>
+            <div class="pcr-card-ind">Hipoglicemia grave (2 ml/kg)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_glicose">40.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">BICARBONATO 8,4%[span_19](start_span)[span_19](end_span)</div>
+            <div class="pcr-card-pres">1 mEq/ml diluído 1:1[span_20](start_span)[span_20](end_span)</div>
+            <div class="pcr-card-ind">Acidose grave / Hipercalemia (1 mEq/kg)[span_21](start_span)[span_21](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_bicarbonato">20.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">EXPANSÃO VOLÊMICA[span_22](start_span)[span_22](end_span)</div>
+            <div class="pcr-card-pres">SF 0,9% ou Ringer Lactato[span_23](start_span)[span_23](end_span)</div>
+            <div class="pcr-card-ind">20 ml/kg em 15-20 minutos[span_24](start_span)[span_24](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_soro">400</span><span>mL</span></div>
+          </div>
+        </div>
+
+        <div style="font-weight:700; color:var(--primary-light); font-size:0.85rem; text-transform:uppercase; margin-bottom:6px;">🫁 Sequência Rápida de Intubação (SRI)[span_25](start_span)[span_25](end_span)</div>
+        <div class="grid-3" style="margin-bottom:14px;">
+          <div class="pcr-card">
+            <div class="pcr-card-title">MIDAZOLAM (1 mg/ml)[span_26](start_span)[span_26](end_span)</div>
+            <div class="pcr-card-pres">1 ml (5mg/ml) + 4 ml AD[span_27](start_span)[span_27](end_span)</div>
+            <div class="pcr-card-ind">Sedação SRI: 0,2 mg/kg[span_28](start_span)[span_28](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_midazolam">4.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">CETAMINA (10 mg/ml)[span_29](start_span)[span_29](end_span)</div>
+            <div class="pcr-card-pres">1 ml (50mg/ml) + 4 ml AD[span_30](start_span)[span_30](end_span)</div>
+            <div class="pcr-card-ind">Indução estável: 2 mg/kg[span_31](start_span)[span_31](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_cetamina">4.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">ROCURÔNIO (10 mg/ml)[span_32](start_span)[span_32](end_span)</div>
+            <div class="pcr-card-pres">Puro (1 mg/kg)[span_33](start_span)[span_33](end_span)</div>
+            <div class="pcr-card-ind">Bloqueador Neuromuscular[span_34](start_span)[span_34](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_rocuronio">2.0</span><span>mL</span></div>
+          </div>
+        </div>
+
+        <div style="font-weight:700; color:var(--teal-primary); font-size:0.85rem; text-transform:uppercase; margin-bottom:6px;">🧠 Anticonvulsivantes & Reversores[span_35](start_span)[span_35](end_span)</div>
+        <div class="grid-3">
+          <div class="pcr-card">
+            <div class="pcr-card-title">DIAZEPAM (5 mg/ml)[span_36](start_span)[span_36](end_span)</div>
+            <div class="pcr-card-pres">Puro EV lento (0,3 mg/kg)[span_37](start_span)[span_37](end_span)</div>
+            <div class="pcr-card-ind">Máx: 10 mg[span_38](start_span)[span_38](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_diazepam">1.2</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">FENITOÍNA (50 mg/ml)[span_39](start_span)[span_39](end_span)</div>
+            <div class="pcr-card-pres">Ataque: 15 a 20 mg/kg[span_40](start_span)[span_40](end_span)</div>
+            <div class="pcr-card-ind">Diluir em SF (nunca SG)[span_41](start_span)[span_41](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_fenitoina">6.0</span><span>mL</span></div>
+          </div>
+          <div class="pcr-card">
+            <div class="pcr-card-title">NALOXONA (0,4 mg/ml)[span_42](start_span)[span_42](end_span)</div>
+            <div class="pcr-card-pres">Reversor Opioide: 0,1 mg/kg[span_43](start_span)[span_43](end_span)</div>
+            <div class="pcr-card-ind">Máx: 2 mg[span_44](start_span)[span_44](end_span)</div>
+            <div class="pcr-card-res"><span class="pcr-val" id="pcr_naloxona">5.0</span><span>mL</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. BALANÇO HÍDRICO & SINAIS VITAIS -->
+    <section id="view-balanco" class="view-section">
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h2>Balanço Hídrico & Sinais Vitais (UTIP & Neonatologia)</h2>
+            <p class="desc" style="margin-bottom:0;">Sinais vitais em sequência, cálculo de Holliday-Segar (>10kg) e soma por Enter ou botão (+) nos volumes.</p>
+          </div>
+          <button class="btn btn-outline" onclick="zerarCamposBH()">🔄 Limpar Tudo</button>
+        </div>
+
+        <div class="form-group">
+          <label style="color:var(--primary); font-size:0.9rem;">1. Sinais Vitais (Mínimo e Máximo separados por espaço ou hífen)</label>
+          <div class="grid-3" style="margin-top: 4px;">
+            <div class="form-group"><label>1. PAM (mmHg)</label><input type="text" id="bh_pam" placeholder="Ex: 70 76" oninput="calcularBH()"></div>
+            <div class="form-group"><label>2. FC (bpm)</label><input type="text" id="bh_fc" placeholder="Ex: 95 130" oninput="calcularBH()"></div>
+            <div class="form-group"><label>3. FR (irpm)</label><input type="text" id="bh_fr" placeholder="Ex: 22 40" oninput="calcularBH()"></div>
+            <div class="form-group"><label>4. SatO₂ (%)</label><input type="text" id="bh_sat" placeholder="Ex: 92 98" oninput="calcularBH()"></div>
+            <div class="form-group"><label>5. Temp (ºC)</label><input type="text" id="bh_temp" placeholder="Ex: 36.5 37.2" oninput="calcularBH()"></div>
+            <div class="form-group"><label>6. HGT (mg/dL)</label><input type="text" id="bh_hgt" placeholder="Ex: 85 110" oninput="calcularBH()"></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 6px;">
+          <label style="color:var(--primary); font-size:0.9rem;">2. Parâmetros do Paciente & Período</label>
+          <div class="grid-3" style="margin-top:4px;">
+            <div class="form-group">
+              <label>Peso Corporal (kg)</label>
+              <input type="number" id="bh_peso" step="any" placeholder="Ex: 12.5" oninput="calcularBH()">
+            </div>
+            <div class="form-group">
+              <label>Peso Calórico (Holliday-Segar)</label>
+              <input type="text" id="bh_pesoCal" readonly placeholder="Auto para > 10 kg">
+            </div>
+            <div class="form-group">
+              <label>Período de Balanço</label>
+              <div class="btn-group-time">
+                <button type="button" class="btn-time" onclick="setHorasBH(6, this)">6 Horas</button>
+                <button type="button" class="btn-time" onclick="setHorasBH(12, this)">12 Horas</button>
+                <button type="button" class="btn-time active" onclick="setHorasBH(24, this)">24 Horas</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 6px;">
+          <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid var(--border);">
+            <div style="font-weight:700; font-size:0.82rem; color:#1e3a8a; margin-bottom:6px;">📥 Entradas (mL)</div>
+            <div class="form-group">
+              <label>Volume Endovenoso (EV)</label>
+              <div class="input-plus-group">
+                <input type="text" id="bh_ev" placeholder="0" inputmode="decimal" onkeydown="handleBhKey(event, this)">
+                <button type="button" class="btn-plus" onclick="somarCampoManual('ev')" title="Somar valor">+</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Oral / SNG / SNE</label>
+              <div class="input-plus-group">
+                <input type="text" id="bh_vo" placeholder="0" inputmode="decimal" onkeydown="handleBhKey(event, this)">
+                <button type="button" class="btn-plus" onclick="somarCampoManual('vo')" title="Somar valor">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid var(--border);">
+            <div style="font-weight:700; font-size:0.82rem; color:#991b1b; margin-bottom:6px;">📤 Saídas / Perdas (mL)</div>
+            <div class="form-group">
+              <label>Diurese (mL)</label>
+              <div class="input-plus-group">
+                <input type="text" id="bh_diurese" placeholder="0" inputmode="decimal" onkeydown="handleBhKey(event, this)">
+                <button type="button" class="btn-plus" style="background:#dc2626;" onclick="somarCampoManual('diurese')" title="Somar valor">+</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Drenos (mL)</label>
+              <div class="input-plus-group">
+                <input type="text" id="bh_drenos" placeholder="0" inputmode="decimal" onkeydown="handleBhKey(event, this)">
+                <button type="button" class="btn-plus" style="background:#dc2626;" onclick="somarCampoManual('drenos')" title="Somar valor">+</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Vômitos / Outras Perdas (mL)</label>
+              <div class="input-plus-group">
+                <input type="text" id="bh_vomitos" placeholder="0" inputmode="decimal" onkeydown="handleBhKey(event, this)">
+                <button type="button" class="btn-plus" style="background:#dc2626;" onclick="somarCampoManual('vomitos')" title="Somar valor">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-box" style="margin-top: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); font-weight:600;" id="bh_lblTempo">Balanço Hídrico Acumulado (24 Horas)</div>
+              <div id="bh_displayVal" style="font-size:1.7rem; font-weight:800; color:var(--text);">0,0 mL</div>
+            </div>
+            <div id="bh_taxaDiurese" style="font-size:0.9rem; font-weight:600; color:var(--text-muted); text-align:right;">Diurese: -- mL/kg/h</div>
+          </div>
+
+          <div style="margin-top: 10px;">
+            <label>Texto pronto para copiar no prontuário:</label>
+            <textarea id="bh_textoProntuario" rows="7" readonly style="font-family: monospace; font-size: 0.82rem; margin-top: 4px;"></textarea>
+            <button class="btn btn-primary" style="margin-top: 8px; width: 100%;" onclick="copiarProntuarioBH()">📋 Copiar para Prontuário</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. FOTOTERAPIA NEONATAL -->
+    <section id="view-ictericia" class="view-section">
+      <div class="card">
+        <h2>💡 Calculadora de Fototerapia Neonatal</h2>
+        <p class="desc">Indicação de fototerapia e exsanguineotransfusão conforme AAP 2022 (&ge;35 sem) e Maisels/NICE (&lt;35 sem)[span_45](start_span)[span_45](end_span).</p>
+
+        <div class="grid-2">
+          <div class="form-group"><label>Idade Gestacional (semanas)</label><input type="number" id="ict_ig" min="22" max="42" placeholder="Ex: 38"></div>
+          <div class="form-group"><label>Idade Cronológica (Horas de Vida)</label><input type="number" id="ict_horas" min="0" max="336" placeholder="Ex: 48"></div>
+          <div class="form-group"><label>Peso de Nascimento (gramas)</label><input type="number" id="ict_peso" min="300" max="6000" placeholder="Ex: 3100"></div>
+          <div class="form-group"><label>Bilirrubina Total (mg/dL)</label><input type="number" id="ict_bt" step="0.1" placeholder="Ex: 14.5"></div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid var(--border); border-radius:8px; padding:12px; margin-top:8px;">
+          <div style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px;">Fatores de Risco de Neurotoxicidade (&ge;35 semanas):</div>
+          <div style="display:flex; flex-direction:column; gap:4px; font-size:0.85rem;">
+            <label style="font-weight:normal;"><input type="checkbox" id="ict_r_albumina"> Albumina &lt; 3,0 g/dL[span_46](start_span)[span_46](end_span)</label>
+            <label style="font-weight:normal;"><input type="checkbox" id="ict_r_hemolise"> Doença hemolítica isoimune / Deficiência de G6PD / Esferocitose[span_47](start_span)[span_47](end_span)</label>
+            <label style="font-weight:normal;"><input type="checkbox" id="ict_r_sepse"> Sepse neonatal presumida ou confirmada[span_48](start_span)[span_48](end_span)</label>
+            <label style="font-weight:normal;"><input type="checkbox" id="ict_r_instab"> Instabilidade clínica nas últimas 24 horas[span_49](start_span)[span_49](end_span)</label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; margin-top:12px;" onclick="calcularIctericia()">Calcular Indicação & Conduta</button>
+        <div id="ict_resultadoBox" class="result-box" style="display:none; margin-top:14px;"></div>
+      </div>
+    </section>
+
+    <!-- 5. DISTÚRBIOS ELETROLÍTICOS & NEFROLOGIA -->
+    <section id="view-nefro" class="view-section">
+      <div class="card">
+        <h2>🧪 Distúrbios Eletrolíticos & Suporte Nefrológico</h2>
+        <p class="desc">Cálculo de Água Corporal Total, Schwartz, déficits de eletrólitos e frações de excreção urinária[span_50](start_span)[span_50](end_span).</p>
+
+        <div class="grid-3">
+          <div class="form-group"><label>Peso (kg)</label><input type="number" id="nef_peso" step="any" placeholder="Ex: 18"></div>
+          <div class="form-group"><label>Estatura (cm)</label><input type="number" id="nef_estatura" step="any" placeholder="Ex: 110"></div>
+          <div class="form-group">
+            <label>Perfil do Paciente</label>
+            <select id="nef_perfil">
+              <option value="crianca">Criança (ACT 60%)[span_51](start_span)[span_51](end_span)</option>
+              <option value="rn">Recém-Nascido (ACT 70%)[span_52](start_span)[span_52](end_span)</option>
+              <option value="adolescente_m">Adolescente Menino (ACT 60%)[span_53](start_span)[span_53](end_span)</option>
+              <option value="adolescente_f">Adolescente Menina (ACT 50%)[span_54](start_span)[span_54](end_span)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group"><label>Sódio - Na (mEq/L)</label><input type="number" id="nef_na" step="any" placeholder="135-145"></div>
+          <div class="form-group"><label>Potássio - K (mEq/L)</label><input type="number" id="nef_k" step="any" placeholder="3.5-5.5"></div>
+          <div class="form-group"><label>Cloro - Cl (mEq/L)</label><input type="number" id="nef_cl" step="any" placeholder="98-106"></div>
+          <div class="form-group"><label>Glicemia (mg/dL)</label><input type="number" id="nef_gli" step="any" placeholder="Ex: 110"></div>
+          <div class="form-group"><label>Cálcio Total (mg/dL)</label><input type="number" id="nef_ca" step="any" placeholder="Ex: 9.0"></div>
+          <div class="form-group"><label>Magnésio (mg/dL)</label><input type="number" id="nef_mg" step="any" placeholder="Ex: 1.8"></div>
+          <div class="form-group"><label>Creatinina Sérica (mg/dL)</label><input type="number" id="nef_crs" step="any" placeholder="Ex: 0.5"></div>
+          <div class="form-group"><label>pH Gasometria</label><input type="number" id="nef_ph" step="any" placeholder="Ex: 7.35"></div>
+          <div class="form-group"><label>Bicarbonato - HCO₃</label><input type="number" id="nef_bic" step="any" placeholder="Ex: 22"></div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; margin-top:6px;" onclick="calcularNefrologia()">Processar Análise & Prescrições</button>
+        <div id="nef_resultadoBox" style="margin-top:14px; display:none;"></div>
+      </div>
+    </section>
+
+    <!-- 6. DILUIÇÃO IV -->
+    <section id="view-diluicao" class="view-section">
+      <div class="card">
+        <h2>💉 Calculadora & Guia de Diluição IV Pediátrica</h2>
+        <p class="desc">Ao calcular, são exibidos os volumes seguro/restrito e modelos de prescrição para o prontuário.</p>
+
+        <div style="margin-bottom: 12px;">
+          <input type="text" id="filtroDiluicao" placeholder="🔍 Buscar fármaco na tabela (ex: Meropenem, Ceftriaxona, Vancomicina)..." oninput="filtrarTabelaDiluicao()">
+        </div>
+
+        <div id="boxCalcDiluicaoAtiva" style="display:none; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h3 id="dil_tituloAtivo" style="color:#166534; font-size:1rem; font-weight:700;">Fármaco Selecionado</h3>
+              <p id="dil_subtituloAtivo" style="font-size:0.78rem; color:#15803d;"></p>
+            </div>
+            <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="fecharCalcDiluicao()">✕ Fechar</button>
+          </div>
+
+          <div class="form-group" style="margin-top:10px; max-width:260px;">
+            <label>Informe a Dose Prescrita (<span id="dil_unidadeAtiva">mg</span>):</label>
+            <input type="number" id="dil_doseInput" step="any" placeholder="Ex: 250" oninput="executarCalculoDiluicao()">
+          </div>
+
+          <div id="dil_resultadosCard" style="display:none; margin-top:10px;">
+            <div class="grid-2">
+              <div style="background:#fff; border:1px solid #bbf7d0; border-radius:6px; padding:10px;">
+                <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Volume Recomendado (Usual)</div>
+                <div id="dil_resVolUsual" style="font-size:1.3rem; font-weight:800; color:#166534; margin:3px 0;">-- mL</div>
+                <div id="dil_resConcUsual" style="font-size:0.75rem; color:#475569;"></div>
+              </div>
+              <div style="background:#fff; border:1px solid #fde68a; border-radius:6px; padding:10px;">
+                <div style="font-size:0.7rem; color:#92400e; font-weight:700; text-transform:uppercase;">Volume Mínimo (Restrição Hídrica)</div>
+                <div id="dil_resVolMax" style="font-size:1.3rem; font-weight:800; color:#b45309; margin:3px 0;">-- mL</div>
+                <div id="dil_resConcMax" style="font-size:0.75rem; color:#475569;"></div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <label style="color:#166534; font-weight:700;">Modelos de Prescrição Pronta para Prontuário:</label>
+              <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
+                <div style="font-size:0.75rem; font-weight:700; color:var(--primary); margin-bottom:2px;">OPÇÃO 1: Diluição Recomendada / Padrão</div>
+                <textarea id="dil_prescricaoUsual" rows="2" readonly style="font-family:monospace; font-size:0.8rem; line-height:1.4;"></textarea>
+                <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="copiarTexto('dil_prescricaoUsual')">📋 Copiar Opção 1</button>
+              </div>
+
+              <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:8px;">
+                <div style="font-size:0.75rem; font-weight:700; color:#b45309; margin-bottom:2px;">OPÇÃO 2: Volume Mínimo (Restrição Hídrica)</div>
+                <textarea id="dil_prescricaoMinima" rows="2" readonly style="font-family:monospace; font-size:0.8rem; line-height:1.4;"></textarea>
+                <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="copiarTexto('dil_prescricaoMinima')">📋 Copiar Opção 2</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="max-height: 440px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Fármaco</th>
+                <th>Reconstituição</th>
+                <th>Diluentes Permitidos</th>
+                <th>Conc. Usual</th>
+                <th>Conc. Máxima</th>
+                <th>Velocidade</th>
+                <th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabelaDiluicao"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. INFUSÃO CONTÍNUA -->
+    <section id="view-infusao" class="view-section">
+      <div class="card">
+        <h2>⚡ Calculadora de Dose de Infusão Contínua</h2>
+        <p class="desc">Apresentada exclusivamente na dose usual de referência do fármaco.</p>
+
+        <div class="form-group">
+          <label for="inf_droga">Medicamento</label>
+          <select id="inf_droga" onchange="aoTrocarDrogaInfusao()">
+            <option value="adrenalina">Adrenalina (1 mg/mL) &rarr; Usual: mcg/kg/min</option>
+            <option value="noradrenalina">Noradrenalina (1 mg/mL) &rarr; Usual: mcg/kg/min</option>
+            <option value="dobutamina">Dobutamina (12,5 mg/mL) &rarr; Usual: mcg/kg/min</option>
+            <option value="dopamina">Dopamina (5 mg/mL) &rarr; Usual: mcg/kg/min</option>
+            <option value="milrinona">Milrinona (1 mg/mL) &rarr; Usual: mcg/kg/min</option>
+            <option value="fentanil">Fentanil (0,05 mg/mL) &rarr; Usual: mcg/kg/h</option>
+            <option value="precedex">Precedex (0,1 mg/mL) &rarr; Usual: mcg/kg/h</option>
+            <option value="midazolam">Midazolam (5 mg/mL) &rarr; Usual: mg/kg/h</option>
+            <option value="cetamina">Cetamina (50 mg/mL) &rarr; Usual: mg/kg/h</option>
+            <option value="custom">Outro Personalizado...</option>
+          </select>
+        </div>
+
+        <div id="inf_customBox" style="display:none; background:#f8fafc; padding:12px; border-radius:8px; border:1px dashed var(--border); margin-bottom:10px;">
+          <div class="grid-3">
+            <div class="form-group"><label>Nome</label><input type="text" id="inf_customNome" placeholder="Ex: Propofol"></div>
+            <div class="form-group"><label>Conc. Estoque (mg/mL)</label><input type="number" id="inf_customConc" step="any" placeholder="Ex: 10"></div>
+            <div class="form-group">
+              <label>Unidade Padrão</label>
+              <select id="inf_customUnid">
+                <option value="mcg/kg/min">mcg/kg/min</option>
+                <option value="mcg/kg/h">mcg/kg/h</option>
+                <option value="mg/kg/h">mg/kg/h</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group"><label>Peso (kg)</label><input type="number" id="inf_peso" step="any" value="10" oninput="calcularInfusao()"></div>
+          <div class="form-group"><label>Vazão na Bomba (mL/h)</label><input type="number" id="inf_vazao" step="any" value="1" oninput="calcularInfusao()"></div>
+          <div class="form-group"><label>Volume Fármaco (mL)</label><input type="number" id="inf_volDroga" step="any" value="1.44" oninput="calcularInfusao()"></div>
+          <div class="form-group"><label>Volume Diluente (mL)</label><input type="number" id="inf_volDiluente" step="any" value="22.56" oninput="calcularInfusao()"></div>
+        </div>
+
+        <div class="result-box" style="text-align:center; padding:16px;">
+          <div style="font-size:0.8rem; text-transform:uppercase; color:var(--text-muted); font-weight:700;" id="inf_lblDoseNome">Dose Calculada (Usual)</div>
+          <div id="inf_displayDoseUnica" style="font-size:2rem; font-weight:800; color:var(--primary); margin:4px 0;">0.100 mcg/kg/min</div>
+          <div id="inf_resDetalhes" style="font-size:0.8rem; color:var(--text-muted);">Solução: 24.0 mL | Concentração final: 0.060 mg/mL</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. DOSES EM PEDIATRIA -->
+    <section id="view-drogas" class="view-section">
+      <div class="card">
+        <h2>💊 Doses Medicamentos em Pediatria</h2>
+        <p class="desc">Doses com intervalos variáveis, campo para dose desejada e opções de diluição automática.</p>
+
+        <div class="grid-2">
+          <div>
+            <label>Selecione o Medicamento:</label>
+            <input type="text" id="drg_busca" placeholder="🔍 Filtrar fármaco..." oninput="filtrarDrogasIntermitentes()" style="margin-bottom: 6px;">
+            <div id="drg_lista" style="max-height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px;"></div>
+          </div>
+
+          <div>
+            <div class="grid-2">
+              <div class="form-group"><label>Peso (kg)</label><input type="number" id="drg_peso" step="any" placeholder="Ex: 12"></div>
+              <div class="form-group">
+                <label>Idade</label>
+                <div style="display: flex; gap: 4px;">
+                  <input type="number" id="drg_idadeVal" placeholder="Ex: 3" style="width: 55%;">
+                  <select id="drg_idadeUnid" style="width: 45%;">
+                    <option value="anos" selected>anos</option>
+                    <option value="meses">meses</option>
+                    <option value="dias">dias</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Dose Desejada (mg/kg)</label>
+                <input type="number" id="drg_doseDesejada" step="any" placeholder="Ex: 50">
+              </div>
+              <div class="form-group">
+                <label>Tipo da Dose</label>
+                <select id="drg_tipoDose">
+                  <option value="dose">mg/kg/dose</option>
+                  <option value="dia">mg/kg/dia (fracionado)</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top:4px;" onclick="calcularDrogasIntermitentes()">Calcular Dose & Prescrição</button>
+          </div>
+        </div>
+
+        <div id="drg_resultadoBox" class="result-box" style="display: none; margin-top: 14px;">
+          <div id="drg_calcDetalhes" style="font-size: 0.9rem; margin-bottom: 8px;"></div>
+          <div style="margin-top: 10px;">
+            <label style="font-weight: 700; color: var(--primary);">Modelos de Prescrição com Diluição Automática:</label>
+            <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:6px;">
+              <div style="font-size:0.75rem; font-weight:700; color:var(--primary); margin-bottom:2px;">OPÇÃO 1: Diluição Recomendada / Padrão</div>
+              <textarea id="drg_prescUsual" rows="2" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
+              <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="copiarTexto('drg_prescUsual')">📋 Copiar Opção 1</button>
+            </div>
+            <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; margin-top:8px;">
+              <div style="font-size:0.75rem; font-weight:700; color:#b45309; margin-bottom:2px;">OPÇÃO 2: Volume Mínimo Seguro (Restrição)</div>
+              <textarea id="drg_prescMin" rows="2" readonly style="font-family: monospace; font-size: 0.8rem;"></textarea>
+              <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; margin-top:4px;" onclick="copiarTexto('drg_prescMin')">📋 Copiar Opção 2</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9. PIM 2 -->
+    <section id="view-pim2" class="view-section">
+      <div class="card">
+        <h2>Calculadora PIM 2 (Paediatric Index of Mortality 2)</h2>
+        <p class="desc">Referência: Slater A, Shann F, Pearson G; Paediatric Index of Mortality (PIM) Study Group. Intensive Care Med. 2003.</p>
+
+        <div class="grid-2">
+          <div class="form-group"><label for="p2_sbp">PAS (mmHg)</label><input type="number" id="p2_sbp" value="120" oninput="calcularPim2()"></div>
+          <div class="form-group">
+            <label for="p2_pupils">Reação Pupilar</label>
+            <select id="p2_pupils" onchange="calcularPim2()">
+              <option value="0">Normal / Desconhecida / Apenas 1 fixa (0)</option>
+              <option value="1">Ambas fixas e &gt; 3 mm (+3.0791)</option>
+            </select>
+          </div>
+          <div class="form-group"><label for="p2_pao2">PaO₂ (mmHg)</label><input type="number" id="p2_pao2" value="0" oninput="calcularPim2()"></div>
+          <div class="form-group"><label for="p2_fio2">FiO₂ (%)</label><input type="number" id="p2_fio2" value="21" oninput="calcularPim2()"></div>
+          <div class="form-group"><label for="p2_be">Base Excess (mmol/L)</label><input type="number" id="p2_be" value="0" step="0.1" oninput="calcularPim2()"></div>
+          <div class="form-group">
+            <label for="p2_vent">Ventilação Mecânica na 1ª hora</label>
+            <select id="p2_vent" onchange="calcularPim2()">
+              <option value="0">Não (0)</option>
+              <option value="1">Sim (+1.3352)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="p2_elective">Admissão Eletiva</label>
+            <select id="p2_elective" onchange="calcularPim2()">
+              <option value="0">Não (0)</option>
+              <option value="1">Sim (-0.9282)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="p2_surgery">Recuperação Cirúrgica</label>
+            <select id="p2_surgery" onchange="calcularPim2()">
+              <option value="0">Não (0)</option>
+              <option value="1">Sim (-1.0244)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="p2_bypass">Bypass Cardíaco</label>
+            <select id="p2_bypass" onchange="calcularPim2()">
+              <option value="0">Não (0)</option>
+              <option value="1">Sim (-0.3882)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="p2_highrisk">Diagnóstico de Alto Risco</label>
+            <select id="p2_highrisk" onchange="calcularPim2()">
+              <option value="0">Nenhum (0)</option>
+              <option value="1">PCR prévia (+1.6696)</option>
+              <option value="2">Imunodeficiência combinada grave (+1.6696)</option>
+              <option value="3">Leucemia/Linfoma pós-1ª indução (+1.6696)</option>
+              <option value="4">Hemorragia cerebral espontânea (+1.6696)</option>
+              <option value="5">Miocardiopatia ou miocardite (+1.6696)</option>
+              <option value="6">Coração esquerdo hipoplásico (+1.6696)</option>
+              <option value="7">Infecção por HIV (+1.6696)</option>
+              <option value="8">Insuficiência hepática aguda/crônica (+1.6696)</option>
+              <option value="9">Doença neurodegenerativa (+1.6696)</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="p2_lowrisk">Diagnóstico de Baixo Risco</label>
+            <select id="p2_lowrisk" onchange="calcularPim2()">
+              <option value="0">Nenhum (0)</option>
+              <option value="1">Asma (-1.5883)</option>
+              <option value="2">Bronquiolite (-1.5883)</option>
+              <option value="3">Crupe (-1.5883)</option>
+              <option value="4">AOS pós-adenoamigdalectomia (-1.5883)</option>
+              <option value="5">CAD (-1.5883)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="result-box">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap;">
+            <div>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Risco de Mortalidade (PIM 2)</div>
+              <div id="p2_resMortality" style="font-size:2rem; font-weight:800; color:var(--primary);">1.2%</div>
+            </div>
+            <div style="font-size:0.85rem; color:#475569;">Logit: <strong id="p2_resLogit">-4.392</strong></div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:10px;" onclick="copiarLaudoPim2()">📋 Copiar Laudo PIM 2</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. INTERGROWTH-21st -->
+    <section id="view-intergrowth" class="view-section">
+      <div class="card">
+        <h2>Classificação Antropométrica do Recém-Nascido</h2>
+        <p class="desc">Padrões INTERGROWTH-21st (Villar et al., Lancet 2014) — 33+0 a 42+6 semanas de IG.</p>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Sexo</label>
+            <select id="ig_sexo" onchange="calcularIntergrowth()">
+              <option value="M">Masculino</option>
+              <option value="F">Feminino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Idade Gestacional</label>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <input type="number" id="ig_sem" min="20" max="45" value="38" oninput="calcularIntergrowth()">
+              <span>sem +</span>
+              <input type="number" id="ig_dias" min="0" max="6" value="0" oninput="calcularIntergrowth()">
+              <span>d</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top:6px;">
+          <div class="form-group"><label>Peso (g)</label><input type="number" id="ig_peso" placeholder="Ex: 3150" oninput="calcularIntergrowth()"></div>
+          <div class="form-group"><label>Comprimento (cm)</label><input type="number" id="ig_comp" step="0.1" placeholder="Ex: 49.0" oninput="calcularIntergrowth()"></div>
+          <div class="form-group"><label>Perímetro Cefálico (cm)</label><input type="number" id="ig_pc" step="0.1" placeholder="Ex: 34.5" oninput="calcularIntergrowth()"></div>
+        </div>
+
+        <div id="ig_resultadoContainer" style="display:none; margin-top:12px;">
+          <div id="ig_gaBanner" class="result-box" style="margin-bottom:10px; background:#f8fafc; border-color:#cbd5e1;"></div>
+          <div id="ig_cardsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+          <div id="ig_iugrBox" style="margin-top:10px;"></div>
+          
+          <div class="result-box" style="margin-top:12px;">
+            <div style="font-weight:700; margin-bottom:4px; font-size:0.85rem;">Laudo Antropométrico:</div>
+            <textarea id="ig_resumoTexto" rows="5" readonly style="font-family:monospace; font-size:0.8rem;"></textarea>
+            <button class="btn btn-teal" style="margin-top:6px; width:100%;" onclick="copiarTexto('ig_resumoTexto')">📋 Copiar Laudo Neonato</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11. TIG NEONATAL -->
+    <section id="view-tig" class="view-section">
+      <div class="card">
+        <h2>Calculadora de TIG e Eletrólitos Neonatais (SBP)</h2>
+        <p class="desc">Taxa de infusão de glicose (SG 5% + G 50%) e balanço eletrolítico conforme peso e dia de vida.</p>
+
+        <div class="grid-2">
+          <div class="form-group"><label>Peso do RN (kg)</label><input type="number" id="tig_peso" step="0.001" placeholder="Ex: 1.350" oninput="calcularTig()"></div>
+          <div class="form-group">
+            <label>Dia de Vida</label>
+            <select id="tig_dia" onchange="calcularTig()">
+              <option value="1">1º dia (Fase 1)</option>
+              <option value="2">2º dia (Fase 1)</option>
+              <option value="3">3º dia (Fase 1)</option>
+              <option value="4">4º dia (Fase 1)</option>
+              <option value="5">5º dia (Fase 1)</option>
+              <option value="6">Fase 2 (&gt; 5 dias)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group"><label>TIG Desejada (mg/kg/min)</label><input type="number" id="tig_desejada" step="0.1" value="4.0" oninput="calcularTig()"></div>
+          <div class="form-group">
+            <label>Perfil</label>
+            <select id="tig_tipo" onchange="calcularTig()">
+              <option value="auto">Prematuro / Baseado no Peso</option>
+              <option value="termo">A Termo</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="background:#f1f5f9; padding:10px; border-radius:6px; margin:6px 0;">
+          <div id="tig_sugestaoSBP" style="font-size:0.75rem; color:#475569; margin-bottom:6px;">💡 Sugestão SBP: --</div>
+          <div class="grid-2">
+            <div class="form-group"><label>Taxa Hídrica (mL/kg/dia)</label><input type="number" id="tig_taxaHidrica" value="80" oninput="atualizarTigPorTaxa()"></div>
+            <div class="form-group"><label>Volume Total (mL/24h)</label><input type="number" id="tig_volTotal" placeholder="Auto" oninput="calcularTig(true)"></div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:10px;">
+          <div class="result-box" style="margin-top:0;">
+            <div style="font-weight:700; color:var(--primary); margin-bottom:6px; font-size:0.85rem;">💧 Solução Glicosada (24h)</div>
+            <div style="display:flex; justify-content:space-between; font-size:0.82rem;"><span>SG 5%:</span><strong id="tig_resSg5">0.0 mL</strong></div>
+            <div style="display:flex; justify-content:space-between; font-size:0.82rem;"><span>G 50%:</span><strong id="tig_resG50">0.0 mL</strong></div>
+            <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-top:4px;"><span>Concentração:</span><span id="tig_resCg">0.0 %</span></div>
+          </div>
+
+          <div class="result-box success" style="margin-top:0;">
+            <div style="font-weight:700; color:var(--success); margin-bottom:6px; font-size:0.85rem;">🧪 Eletrólitos (24h)</div>
+            <div style="font-size:0.78rem;"><strong>Na⁺:</strong> <span id="tig_alvoNa">0.0</span> &rarr; <strong id="tig_absNa">0.0 mmol</strong></div>
+            <div style="font-size:0.78rem;"><strong>K⁺:</strong> <span id="tig_alvoK">0.0</span> &rarr; <strong id="tig_absK">0.0 mmol</strong></div>
+            <div style="font-size:0.78rem;"><strong>Cl⁻:</strong> <span id="tig_alvoCl">0.0</span> &rarr; <strong id="tig_absCl">0.0 mmol</strong></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. CATETERISMO UMBILICAL -->
+    <section id="view-cateter" class="view-section">
+      <div class="card">
+        <h2>Calculadora de Cateterismo Umbilical Neonatal</h2>
+        <p class="desc">Suporte à inserção por Peso e distância Ombro-Umbigo (POP-PB).</p>
+
+        <div class="grid-2">
+          <div class="form-group"><label>Peso do RN (kg)</label><input type="number" id="cat_peso" step="0.001" placeholder="Ex: 2.300" oninput="calcularCateterPeso()"></div>
+          <div class="form-group">
+            <label>Ou Ombro-Umbigo (cm)</label>
+            <select id="cat_ombro" onchange="calcularCateterOmbro()">
+              <option value="">Selecione...</option>
+              <option value="9">9 cm</option><option value="10">10 cm</option><option value="11">11 cm</option>
+              <option value="12">12 cm</option><option value="13">13 cm</option><option value="14">14 cm</option>
+              <option value="15">15 cm</option><option value="16">16 cm</option><option value="17">17 cm</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="result-box" style="margin-top:12px;">
+          <div class="grid-3">
+            <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; text-align:center;">
+              <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">VENOSO</div>
+              <div id="cat_resVenoso" style="font-size:1.3rem; font-weight:800; color:var(--primary);">-- cm</div>
+            </div>
+            <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; text-align:center;">
+              <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">ARTERIAL ALTO (T6-T9)</div>
+              <div id="cat_resArtAlto" style="font-size:1.3rem; font-weight:800; color:#991b1b;">-- cm</div>
+            </div>
+            <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; text-align:center;">
+              <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700;">ARTERIAL BAIXO (L3-L5)</div>
+              <div id="cat_resArtBaixo" style="font-size:1.3rem; font-weight:800; color:#b45309;">-- cm</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOLHA DE IMPRESSÃO DE BEIRA DO LEITO (PCR) -->
+  <div id="folhaImpressaoPCR">
+    <div class="print-box-header">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #000; padding-bottom:4px; margin-bottom:6px;">
+        <span style="font-size:15px; font-weight:900;">FOLHA DE PARADA CARDIORRESPIRATÓRIA & EMERGÊNCIA PEDIÁTRICA</span>
+        <span style="font-size:12px; font-weight:bold;">BEIRA DO LEITO</span>
+      </div>
+      <div style="display:grid; grid-template-columns: 2fr 1fr 1fr; gap:6px; font-size:11px;">
+        <div><strong>PACIENTE:</strong> __________________________________________</div>
+        <div><strong>LEITO:</strong> _________</div>
+        <div><strong>DATA:</strong> ____/____/20____</div>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; font-size:11px; margin-top:4px;">
+        <div><strong>PESO DE REFERÊNCIA:</strong> <span class="print-highlight" id="prt_peso">20</span> kg</div>
+        <div><strong>IDADE:</strong> _______________</div>
+        <div><strong>MÉDICO RESPONSÁVEL:</strong> ______________________</div>
+      </div>
+    </div>
+
+    <!-- TABELA 1: DESFIBRILAÇÃO & DROGAS DE PCR -->
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th colspan="4" style="background:#e2e8f0; font-size:12px;">1. DESFIBRILAÇÃO ELÉTRICA & DROGAS DE PCR (PARADA CARDIORRESPIRATÓRIA)</th>
+        </tr>
+        <tr>
+          <th style="width:25%;">ITEM / FÁRMACO</th>
+          <th style="width:25%;">APRESENTAÇÃO / PREPARO</th>
+          <th style="width:25%;">DOSE RECOMENDADA</th>
+          <th style="width:25%;">DOSE / VOLUME A ADMINISTRAR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>1º CHOQUE (DESFIBRILAÇÃO)[span_55](start_span)[span_55](end_span)</strong></td>
+          <td>Bifásico ou Monofásico[span_56](start_span)[span_56](end_span)</td>
+          <td>2 J/kg[span_57](start_span)[span_57](end_span)</td>
+          <td><span class="print-highlight" id="prt_choque1">40</span> JOULES</td>
+        </tr>
+        <tr>
+          <td><strong>2º CHOQUE E SUBSEQUENTES[span_58](start_span)[span_58](end_span)</strong></td>
+          <td>Bifásico ou Monofásico[span_59](start_span)[span_59](end_span)</td>
+          <td>4 J/kg[span_60](start_span)[span_60](end_span)</td>
+          <td><span class="print-highlight" id="prt_choque2">80</span> JOULES</td>
+        </tr>
+        <tr>
+          <td><strong>ADRENALINA (1:10.000)[span_61](start_span)[span_61](end_span)</strong></td>
+          <td>1 ml (1mg/ml) + 9 ml AD (solução 0,1 mg/ml)[span_62](start_span)[span_62](end_span)</td>
+          <td>0,01 mg/kg = 0,1 ml/kg[span_63](start_span)[span_63](end_span)</td>
+          <td><span class="print-highlight" id="prt_adrenalina">2.0</span> mL EV/IO (a cada 3-5 min)[span_64](start_span)[span_64](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>AMIODARONA (50 mg/ml)[span_65](start_span)[span_65](end_span)</strong></td>
+          <td>Ampola 150 mg/3 ml (pura in bolus na PCR)[span_66](start_span)[span_66](end_span)</td>
+          <td>5 mg/kg (máx 300 mg)[span_67](start_span)[span_67](end_span)</td>
+          <td><span class="print-highlight" id="prt_amiodarona">2.0</span> mL EV/IO rápido[span_68](start_span)[span_68](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>LIDOCAÍNA 1% (10 mg/ml)[span_69](start_span)[span_69](end_span)</strong></td>
+          <td>Frasco 1% sem vasoconstritor[span_70](start_span)[span_70](end_span)</td>
+          <td>1 mg/kg[span_71](start_span)[span_71](end_span)</td>
+          <td><span class="print-highlight" id="prt_lidocaina">2.0</span> mL EV/IO bolus[span_72](start_span)[span_72](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>GLICOSE 25%[span_73](start_span)[span_73](end_span)</strong></td>
+          <td>Diluição 1:1 (G50% + AD)[span_74](start_span)[span_74](end_span)</td>
+          <td>0,5 a 1 g/kg (2 ml/kg)</td>
+          <td><span class="print-highlight" id="prt_glicose">40.0</span> mL EV em bolus lento[span_75](start_span)[span_75](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>BICARBONATO DE SÓDIO 8,4%[span_76](start_span)[span_76](end_span)</strong></td>
+          <td>1 mEq/ml diluído 1:1 com AD[span_77](start_span)[span_77](end_span)</td>
+          <td>1 mEq/kg[span_78](start_span)[span_78](end_span)</td>
+          <td><span class="print-highlight" id="prt_bicarbonato">20.0</span> mL EV lento[span_79](start_span)[span_79](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>EXPANSÃO VOLÊMICA[span_80](start_span)[span_80](end_span)</strong></td>
+          <td>SF 0,9% ou Ringer Lactato[span_81](start_span)[span_81](end_span)</td>
+          <td>20 ml/kg em 15-20 min[span_82](start_span)[span_82](end_span)</td>
+          <td><span class="print-highlight" id="prt_soro">400</span> mL em bomba/pressurizador[span_83](start_span)[span_83](end_span)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- TABELA 2: SRI & INTUBAÇÃO -->
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th colspan="4" style="background:#e2e8f0; font-size:12px;">2. DROGAS PARA SEQUÊNCIA RÁPIDA DE INTUBAÇÃO (SRI)</th>
+        </tr>
+        <tr>
+          <th style="width:25%;">FÁRMACO</th>
+          <th style="width:25%;">DILUIÇÃO / PREPARO</th>
+          <th style="width:25%;">DOSE RECOMENDADA</th>
+          <th style="width:25%;">VOLUME A ADMINISTRAR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>MIDAZOLAM (1 mg/ml)[span_84](start_span)[span_84](end_span)</strong></td>
+          <td>1 ml (5mg/ml) + 4 ml AD[span_85](start_span)[span_85](end_span)</td>
+          <td>0,2 mg/kg[span_86](start_span)[span_86](end_span)</td>
+          <td><span class="print-highlight" id="prt_midazolam">4.0</span> mL EV[span_87](start_span)[span_87](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>CETAMINA (10 mg/ml)[span_88](start_span)[span_88](end_span)</strong></td>
+          <td>1 ml (50mg/ml) + 4 ml AD[span_89](start_span)[span_89](end_span)</td>
+          <td>2 mg/kg[span_90](start_span)[span_90](end_span)</td>
+          <td><span class="print-highlight" id="prt_cetamina">4.0</span> mL EV[span_91](start_span)[span_91](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>ROCURÔNIO (10 mg/ml)[span_92](start_span)[span_92](end_span)</strong></td>
+          <td>Puro (10 mg/ml)[span_93](start_span)[span_93](end_span)</td>
+          <td>1 mg/kg[span_94](start_span)[span_94](end_span)</td>
+          <td><span class="print-highlight" id="prt_rocuronio">2.0</span> mL EV[span_95](start_span)[span_95](end_span)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- TABELA 3: CONVULSÃO & ANTAGONISTAS -->
+    <table class="print-table">
+      <thead>
+        <tr>
+          <th colspan="4" style="background:#e2e8f0; font-size:12px;">3. ANTICONVULSIVANTES & ANTAGONISTAS / REVERSORES</th>
+        </tr>
+        <tr>
+          <th style="width:25%;">FÁRMACO</th>
+          <th style="width:25%;">DILUIÇÃO / PREPARO</th>
+          <th style="width:25%;">DOSE RECOMENDADA</th>
+          <th style="width:25%;">VOLUME A ADMINISTRAR</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>DIAZEPAM (5 mg/ml)[span_96](start_span)[span_96](end_span)</strong></td>
+          <td>Puro EV lento[span_97](start_span)[span_97](end_span)</td>
+          <td>0,3 mg/kg (máx 10 mg)[span_98](start_span)[span_98](end_span)</td>
+          <td><span class="print-highlight" id="prt_diazepam">1.2</span> mL EV lento[span_99](start_span)[span_99](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>FENITOÍNA (50 mg/ml)[span_100](start_span)[span_100](end_span)</strong></td>
+          <td>Diluir em SF 0,9% (nunca SG)[span_101](start_span)[span_101](end_span)</td>
+          <td>15 a 20 mg/kg[span_102](start_span)[span_102](end_span)</td>
+          <td><span class="print-highlight" id="prt_fenitoina">6.0</span> mL de Hidantal[span_103](start_span)[span_103](end_span)</td>
+        </tr>
+        <tr>
+          <td><strong>NALOXONA (0,4 mg/ml)[span_104](start_span)[span_104](end_span)</strong></td>
+          <td>Puro (reversor de opioides)[span_105](start_span)[span_105](end_span)</td>
+          <td>0,1 mg/kg (máx 2 mg)[span_106](start_span)[span_106](end_span)</td>
+          <td><span class="print-highlight" id="prt_naloxona">5.0</span> mL EV[span_107](start_span)[span_107](end_span)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top:12px; font-size:10px; border-top:1px dashed #000; padding-top:4px; display:flex; justify-content:space-between;">
+      <span>Folha gerada automaticamente pelo Hub Clínico Pediátrico. Fixar em local visível à beira do leito do paciente.</span>
+      <span>Assinatura do Médico: ____________________________________</span>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       FUNÇÕES GLOBAIS DE CONTROLO DO HUB
+       ========================================================================= */
+    function navegarPara(viewId) {
+      document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      const target = document.getElementById(`view-${viewId}`);
+      if (target) target.classList.add('active');
+
+      const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => {
+        const attr = b.getAttribute('onclick');
+        return attr && attr.includes(viewId);
+      });
+      if (btn) btn.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function mostrarToast(msg = 'Copiado para a área de transferência!') {
+      const toast = document.getElementById('hubToast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 2200);
+    }
+
+    function copiarTexto(elementId) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.select();
+      el.setSelectionRange(0, 99999);
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(el.value || el.innerText).then(() => mostrarToast());
+      } else {
+        document.execCommand('copy');
+        mostrarToast();
+      }
+    }
+
+    function filtrarCardsHub() {
+      const q = document.getElementById('filtroHub').value.toLowerCase().trim();
+      document.querySelectorAll('#gridCardsHub .tool-tile').forEach(card => {
+        const text = (card.innerText + ' ' + card.getAttribute('data-tags')).toLowerCase();
+        card.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function salvarLinkGem() {
+      const link = document.getElementById('linkGemPersonalizado').value.trim();
+      if (link) {
+        localStorage.setItem('hub_gem_link', link);
+        mostrarToast('Link do Gem salvo com sucesso!');
+      }
+    }
+
+    function abrirGemOficial() {
+      const salvo = localStorage.getItem('hub_gem_link');
+      if (salvo) {
+        window.open(salvo, '_blank');
+      } else {
+        window.open('https://gemini.google.com', '_blank');
+      }
+    }
+
+    /* =========================================================================
+       1. TRANSCRITOR DE EXAMES
+       ========================================================================= */
+    function zerarTranscritor() {
+      document.getElementById('textoLaudoBruto').value = '';
+      document.getElementById('textoLaudoTranscritoFinal').value = '';
+      document.getElementById('resultadoTranscritorContainer').style.display = 'none';
+      document.getElementById('textoLaudoBruto').focus();
+      mostrarToast('Transcritor limpo!');
+    }
+
+    function formatNumberPt(valStr) {
+      if (!valStr) return '';
+      let clean = valStr.toString().trim().replace(/\s+/g, '');
+      return clean.replace('.', ',');
+    }
+
+    function parseToNum(valStr) {
+      if (!valStr) return null;
+      let clean = valStr.toString().trim().replace(/\./g, '').replace(',', '.');
+      let n = parseFloat(clean);
+      return isNaN(n) ? null : n;
+    }
+
+    function extrairTermo(raw, regex) {
+      const m = raw.match(regex);
+      return m ? formatNumberPt(m[1]) : null;
+    }
+
+    function extrairDiferencial(raw, termoNome) {
+      const regLinha = new RegExp(`(?:\\b${termoNome}\\b)[^\\n\\r;]*`, 'i');
+      const linha = raw.match(regLinha);
+      if (!linha) return { p: null, a: null };
+
+      const txt = linha[0];
+      const mPerc = txt.match(/([0-9]+(?:[.,][0-9]+)?)\s*%/);
+      const mAbs = txt.match(/(?:[-–(:]|\babs\b|\babsoluto\b)\s*([0-9.]+(?:[.,][0-9]+)?)(?!\s*%)/i);
+
+      let p = mPerc ? formatNumberPt(mPerc[1]) : null;
+      let a = mAbs ? formatNumberPt(mAbs[1]) : null;
+
+      if (!p && !a) {
+        const numeros = txt.match(/([0-9]+(?:[.,][0-9]+)?)/g);
+        if (numeros && numeros.length >= 1) {
+          p = formatNumberPt(numeros[0]);
+          if (numeros.length >= 2) a = formatNumberPt(numeros[1]);
+        }
+      }
+      return { p, a };
+    }
+
+    function processarTranscritorGem() {
+      const raw = document.getElementById('textoLaudoBruto').value;
+      if (!raw.trim()) return;
+
+      const now = new Date();
+      const dd = String(now.getDate()).padStart(2, '0');
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const aaaa = now.getFullYear();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+
+      let dt = document.getElementById('exameData').value.trim() || `${dd}/${mm}/${aaaa}`;
+      let hr = document.getElementById('exameHora').value.trim() || `${hh}:${min}`;
+
+      let lineParts = [];
+      let headerStr = `**EXAMES LABORATORIAIS - ${dt} - ${hr}h**`;
+
+      const hb = extrairTermo(raw, /(?:\bhb\b|\bhemoglobina\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const ht = extrairTermo(raw, /(?:\bht\b|\bhemat[oó]crito\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const vcm = extrairTermo(raw, /(?:\bvcm\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const hcm = extrairTermo(raw, /(?:\bhcm\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const chcm = extrairTermo(raw, /(?:\bchcm\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const rdw = extrairTermo(raw, /(?:\brdw\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const plaq = extrairTermo(raw, /(?:\bplaq\b|\bplaquetas\b)[\s:=]+([0-9.]+(?:[.,][0-9]+)?)/i);
+      const leuc = extrairTermo(raw, /(?:\bleuc\b|\bleuco\b|\bleuc[oó]citos(?!\s*ur)\b)[\s:=]+([0-9.]+(?:[.,][0-9]+)?)/i);
+
+      if (hb || ht || vcm || plaq || leuc) {
+        let hemoTokens = [];
+        if (hb) hemoTokens.push(`Hb ${hb}`);
+        if (ht) hemoTokens.push(`Ht ${ht}%`);
+        if (vcm) hemoTokens.push(`VCM ${vcm}`);
+        if (hcm) hemoTokens.push(`HCM ${hcm}`);
+        if (chcm) hemoTokens.push(`CHCM ${chcm}`);
+        if (rdw) hemoTokens.push(`RDW ${rdw}%`);
+
+        let hemoStr = `**Hemograma:** ` + hemoTokens.join(' / ');
+        if (plaq) hemoStr += `, Plaq ${plaq}`;
+
+        if (leuc) {
+          function formatDiff(nome, regNome) {
+            const res = extrairDiferencial(raw, regNome);
+            if (!res.p && !res.a) return null;
+            let valP = res.p || '0,0';
+            let numP = parseToNum(valP);
+            if (numP === 0) return `${nome} 0,0%`;
+            return `${nome} ${valP}%${res.a ? ` - (${res.a})` : ''}`;
+          }
+
+          let diff = [];
+          const neut = formatDiff('Neut', '(?:neut|neutr[oó]filos?)'); if (neut) diff.push(neut);
+          const blastos = formatDiff('Blastos', '(?:blastos?|blast)'); if (blastos) diff.push(blastos);
+          const promiel = formatDiff('Promiel.', '(?:promiel|promiel[oó]citos?)'); if (promiel) diff.push(promiel);
+          const miel = formatDiff('Miel.', '(?:miel|miel[oó]citos?)'); if (miel) diff.push(miel);
+          const metamiel = formatDiff('Metamiel.', '(?:metamiel|metamiel[oó]citos?)'); if (metamiel) diff.push(metamiel);
+          const bast = formatDiff('Bast', '(?:bast|bastonetes?)'); if (bast) diff.push(bast);
+          const seg = formatDiff('Seg', '(?:seg|segmentados?)'); if (seg) diff.push(seg);
+          const e = formatDiff('E', '(?:eos|eosin[oó]filos?|\\be\\b)'); if (e) diff.push(e);
+          const baso = formatDiff('Baso', '(?:baso|basof|bas[oó]filos?)'); if (baso) diff.push(baso);
+          const l = formatDiff('L', '(?:linf|linf[oó]citos?|\\bl\\b)'); if (l) diff.push(l);
+          const mono = formatDiff('Mono', '(?:mono|monoc|mon[oó]citos?)'); if (mono) diff.push(mono);
+
+          const laRes = extrairDiferencial(raw, '(?:la|linf\\s*at[ií]p|linf[oó]citos?\\s*at[ií]picos?)');
+          if (laRes.p && parseToNum(laRes.p) > 0) {
+            diff.push(`LA ${laRes.p}%${laRes.a ? ` - (${laRes.a})` : ''}`);
+          }
+
+          if (diff.length > 0) {
+            hemoStr += `, Leuc. ${leuc}: ${diff.join(' | ')}`;
+          } else {
+            hemoStr += `, Leuc. ${leuc}`;
+          }
+        }
+        lineParts.push(hemoStr);
+      }
+
+      const retRes = extrairDiferencial(raw, '(?:retic|reticul[oó]citos?)');
+      if (retRes.p) {
+        lineParts.push(`Reticulócitos ${retRes.p}%${retRes.a ? ` - (${retRes.a})` : ''}`);
+      }
+
+      const ph = extrairTermo(raw, /(?:\bph\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (ph) lineParts.push(`pH ${ph}`);
+      const po2 = extrairTermo(raw, /(?:\bpo2\b|\bpao2\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (po2) lineParts.push(`PO2 ${po2}`);
+      const pco2 = extrairTermo(raw, /(?:\bpco2\b|\bpaco2\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (pco2) lineParts.push(`PCO2 ${pco2}`);
+      const hco3 = extrairTermo(raw, /(?:\bhco3\b|\bbicarbonato\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (hco3) lineParts.push(`HCO3 ${hco3}`);
+      const be = extrairTermo(raw, /(?:\bbe\b|\bbase\s*excess\b)[\s:=]+([-+]?[0-9]+(?:[.,][0-9]+)?)/i); if (be) lineParts.push(`BE ${be}`);
+      const sato2 = extrairTermo(raw, /(?:\bsato2\b|\bsatura[cç][aã]o\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (sato2) lineParts.push(`SatO2 ${sato2}%`);
+
+      const ureia = extrairTermo(raw, /(?:\bureia\b|\bur[eé]ia\b|\bur\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (ureia) lineParts.push(`Ureia ${ureia}`);
+      const creat = extrairTermo(raw, /(?:\bcreat\b|\bcreatinina\b|\bcr\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (creat) lineParts.push(`Creat ${creat}`);
+
+      const pt = extrairTermo(raw, /(?:\bprot\s*tot\b|\bprote[ií]nas\s*totais?\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (pt) lineParts.push(`Proteínas Totais ${pt}`);
+      const alb = extrairTermo(raw, /(?:\balb\b|\balbumina\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (alb) lineParts.push(`Alb ${alb}`);
+      const glob = extrairTermo(raw, /(?:\bglob\b|\bglobulina\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (glob) lineParts.push(`Glob ${glob}`);
+      const ag = extrairTermo(raw, /(?:\brela[cç][aã]o\s*a\/g\b|\ba\/g\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (ag) lineParts.push(`Rel A/G ${ag}`);
+
+      const bt = extrairTermo(raw, /(?:\bbt\b|\bbilirrubina\s*total\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (bt) lineParts.push(`BT ${bt}`);
+      const bd = extrairTermo(raw, /(?:\bbd\b|\bbilirrubina\s*direta\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (bd) lineParts.push(`BD ${bd}`);
+      const bi = extrairTermo(raw, /(?:\bbi\b|\bbilirrubina\s*indireta\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (bi) lineParts.push(`BI ${bi}`);
+
+      const tgo = extrairTermo(raw, /(?:\btgo\b|\bast\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (tgo) lineParts.push(`TGO ${tgo}`);
+      const tgp = extrairTermo(raw, /(?:\btgp\b|\balt\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (tgp) lineParts.push(`TGP ${tgp}`);
+      const ggt = extrairTermo(raw, /(?:\bggt\b|\bgama\s*gt\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (ggt) lineParts.push(`GGT ${ggt}`);
+      const fa = extrairTermo(raw, /(?:\bfa\b|\bfosfatase\s*alcalina\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (fa) lineParts.push(`FA ${fa}`);
+      const lipase = extrairTermo(raw, /(?:\blipase\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (lipase) lineParts.push(`Lipase ${lipase}`);
+      const pcr = extrairTermo(raw, /(?:\bpcr\b|\bprote[ií]na\s*c\s*reativa\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (pcr) lineParts.push(`PCR ${pcr}`);
+
+      const dens = extrairTermo(raw, /(?:\bdensidade\b|\bdens\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const phUr = extrairTermo(raw, /(?:ph\s*ur(?:ina)?\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i);
+      const leucoUr = extrairTermo(raw, /(?:\bleuco(?:\s*ur|\s*urina)\b|\bleuc[oó]citos\s*(?:na\s*)?urina\b|\bpi[oó]citos\b)[\s:=]+([0-9.]+)/i);
+      const hemUr = extrairTermo(raw, /(?:\bhem[aá]cias(?:\s*ur|\s*urina)\b|\bhem\s*ur\b)[\s:=]+([0-9.]+)/i);
+      const bact = extrairTermo(raw, /(?:\bbact[eé]rias\b)[\s:=]+([<>]?\s*[0-9]+(?:[.,][0-9]+)?)/i);
+
+      if (dens || phUr || leucoUr || hemUr) {
+        let urTokens = [];
+        if (dens) urTokens.push(`Dens ${dens}`);
+        if (phUr) urTokens.push(`pH ${phUr}`);
+        urTokens.push(`Ptn Neg | Glic Neg | Bil Neg | Cet Neg | Sg Neg | Nit Neg | Urob Normal | Cel Raras`);
+        if (leucoUr) urTokens.push(`Leuc ${leucoUr}`);
+        if (hemUr) urTokens.push(`Hem ${hemUr}`);
+        urTokens.push(`Crist Ausentes | Cil Ausentes`);
+        if (bact) urTokens.push(`Bact ${bact}`);
+        lineParts.push(`Urina I: ` + urTokens.join(' | '));
+      }
+
+      const na = extrairTermo(raw, /(?:\bna\b|\bs[oó]dio\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (na) lineParts.push(`Na ${na}`);
+      const k = extrairTermo(raw, /(?:\bk\b|\bpot[aá]ssio\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (k) lineParts.push(`K ${k}`);
+      const ca = extrairTermo(raw, /(?:\bca\b|\bc[aá]lcio\b|\bcai\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (ca) lineParts.push(`Ca ${ca}`);
+      const mg = extrairTermo(raw, /(?:\bmg\b|\bmagn[eé]sio\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (mg) lineParts.push(`Mg ${mg}`);
+      const cl = extrairTermo(raw, /(?:\bcl\b|\bcloro\b|\bcloretos?\b)[\s:=]+([0-9]+(?:[.,][0-9]+)?)/i); if (cl) lineParts.push(`Cl ${cl}`);
+
+      if (lineParts.length === 0) {
+        alert("Nenhum parâmetro identificado no texto colado.");
+        return;
+      }
+
+      const linhaContinua = `${headerStr} | ` + lineParts.join(' | ');
+
+      let alertas = [];
+      const numHb = parseToNum(hb);
+      if (numHb !== null && numHb < 10) alertas.push(`Anemia (Hb ${hb})`);
+
+      let numPlaq = parseToNum(plaq);
+      if (numPlaq !== null && numPlaq < 1000) numPlaq = numPlaq * 1000;
+      if (numPlaq !== null && numPlaq < 100000) alertas.push(`Plaquetopenia importante (Plaq ${plaq})`);
+
+      let numLeuc = parseToNum(leuc);
+      if (numLeuc !== null && numLeuc < 100) numLeuc = numLeuc * 1000;
+      if (numLeuc !== null && (numLeuc > 15000 || numLeuc < 4000)) alertas.push(`Leucócitos alterados (${leuc})`);
+
+      const numBast = extrairDiferencial(raw, '(?:bast|bastonetes?)');
+      if (numBast.p && parseToNum(numBast.p) > 5) alertas.push(`Desvio à esquerda presente (Bastonetes ${numBast.p}%)`);
+
+      const numPh = parseToNum(ph);
+      if (numPh !== null && (numPh < 7.30 || numPh > 7.45)) alertas.push(`Distúrbio ácido-base (pH ${ph})`);
+
+      const numBe = parseToNum(be);
+      if (numBe !== null && numBe < -5) alertas.push(`Acidose metabólica / Consumo de bases (BE ${be})`);
+
+      const numK = parseToNum(k);
+      if (numK !== null && (numK < 3.5 || numK > 5.5)) alertas.push(`Distúrbio de Potássio (K ${k})`);
+
+      const numNa = parseToNum(na);
+      if (numNa !== null && (numNa < 135 || numNa > 145)) alertas.push(`Distúrbio de Sódio (Na ${na})`);
+
+      const numCr = parseToNum(creat);
+      if (numCr !== null && numCr > 1.2) alertas.push(`Disfunção renal / Creatinina elevada (Creat ${creat})`);
+
+      const numPcr = parseToNum(pcr);
+      if (numPcr !== null && numPcr > 10) alertas.push(`Prova inflamatória francamente elevada (PCR ${pcr})`);
+
+      const numBt = parseToNum(bt);
+      if (numBt !== null && numBt > 2.0) {
+        alertas.push(`Hiperbilirrubinemia acentuada às custas de fração indireta: BT ${bt} mg/dL (BI ${bi || '--'} mg/dL e BD ${bd || '--'} mg/dL). Risco de neurotoxicidade por bilirrubina indireta; avaliar indicação de fototerapia imediata, curva de Bhutani/diretrizes neonatais e rastreio de hemólise.`);
+      }
+
+      const numPo2 = parseToNum(po2);
+      const numSat = parseToNum(sato2);
+      const numPco2 = parseToNum(pco2);
+      if ((numPo2 !== null && numPo2 < 60) || (numSat !== null && numSat < 90) || (numPh !== null && numPh < 7.35)) {
+        alertas.push(`Gasometria Arterial alterada: Hipoxemia relevante (PO2 ${po2 || '--'} mmHg, SatO2 ${sato2 || '--'}%) associada a acidose ventilatória (pH ${ph || '--'}, PCO2 ${pco2 || '--'} mmHg). Necessária avaliação imediata do padrão ventilatório, perviedade de vias aéreas e oferta de oxigenoterapia suplementar.`);
+      }
+
+      const numTgo = parseToNum(tgo);
+      const numTgp = parseToNum(tgp);
+      if (numTgo !== null && numTgo > 50) {
+        alertas.push(`Transaminases / Enzimas hepáticas: TGO elevada (${tgo} U/L) com TGP ${tgp ? tgp + ' U/L' : 'normal'}. Acompanhar função hepática e descartar dano hepatocelular ou origem muscular/hemolítica associada à hiperbilirrubinemia.`);
+      }
+
+      const numLeucoUr = parseToNum(leucoUr);
+      if (numLeucoUr !== null && numLeucoUr > 10000) {
+        alertas.push(`Urina I com Piúria/Leucocitúria: Leucócitos ${leucoUr}/mL (VR: até 10.000 ou 20.000/mL); correlacionar com quadro clínico para investigar infecção do trato urinário (ITU) e checar resultado da urocultura.`);
+      }
+
+      let alertaTexto = `\n\nALERTA DE EXAMES ALTERADOS (PLANTÃO):\n\n`;
+      if (alertas.length > 0) {
+        alertaTexto += alertas.map(a => `• ${a}`).join('\n\n');
+      } else {
+        alertaTexto += `• Sem alterações laboratoriais críticas imediatas detectadas.`;
+      }
+
+      document.getElementById('textoLaudoTranscritoFinal').value = linhaContinua + alertaTexto;
+      document.getElementById('resultadoTranscritorContainer').style.display = 'block';
+    }
+
+    /* =========================================================================
+       2. BALANÇO HÍDRICO & SINAIS VITAIS
+       ========================================================================= */
+    let horasBalancho = 24;
+    const acumuladosBH = { ev: 0, vo: 0, diurese: 0, drenos: 0, vomitos: 0 };
+
+    function parseBH(val) {
+      if (!val) return 0;
+      let clean = val.toString().replace(',', '.');
+      return parseFloat(clean) || 0;
+    }
+
+    function formatBH(num, decimals = 1) {
+      if (isNaN(num)) return "0";
+      return num.toFixed(decimals).replace('.', ',');
+    }
+
+    function formatVitalBH(str) {
+      if (!str) return '';
+      let partes = str.trim().split(/[\s\-–—/]+/);
+      return partes.length >= 2 ? `${partes[0]}-${partes[1]}` : (partes[0] || '');
+    }
+
+    function setHorasBH(h, btn) {
+      horasBalancho = h;
+      document.querySelectorAll('.btn-time').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('bh_lblTempo').innerText = `Balanço Hídrico Acumulado (${h} Horas)`;
+      calcularBH();
+    }
+
+    function somarCampoManual(chave) {
+      const inputEl = document.getElementById('bh_' + chave);
+      if (!inputEl) return;
+      const valorDigitado = parseBH(inputEl.value);
+      acumuladosBH[chave] += valorDigitado;
+      inputEl.value = formatBH(acumuladosBH[chave], 1);
+      inputEl.focus();
+      inputEl.select();
+      calcularBH();
+    }
+
+    function handleBhKey(event, inputElement) {
+      const idRaw = inputElement.id;
+      const chave = idRaw.replace('bh_', '');
+
+      if (event.key === 'Enter' || event.keyCode === 13) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const valorDigitado = parseBH(inputElement.value);
+        acumuladosBH[chave] += valorDigitado;
+        inputElement.value = formatBH(acumuladosBH[chave], 1);
+
+        setTimeout(() => {
+          inputElement.focus();
+          inputElement.select();
+        }, 10);
+
+        calcularBH();
+        return false;
+      }
+
+      if (event.key === 'Delete' || event.key === 'Backspace') {
+        const hasSelection = inputElement.selectionStart === 0 && inputElement.selectionEnd === inputElement.value.length;
+        if (hasSelection || inputElement.value.length <= 1) {
+          acumuladosBH[chave] = 0;
+          inputElement.value = '';
+          calcularBH();
+        }
+      }
+    }
+
+    function zerarCamposBH() {
+      const camposSv = ['bh_pam', 'bh_fc', 'bh_fr', 'bh_sat', 'bh_temp', 'bh_hgt'];
+      camposSv.forEach(id => { document.getElementById(id).value = ''; });
+
+      const camposBh = ['ev', 'vo', 'diurese', 'drenos', 'vomitos'];
+      camposBh.forEach(k => {
+        acumuladosBH[k] = 0;
+        document.getElementById('bh_' + k).value = '';
+      });
+
+      document.getElementById('bh_peso').value = '';
+      calcularBH();
+    }
+
+    function calcHolliday(peso) {
+      if (peso <= 10) return peso * 100;
+      if (peso <= 20) return 1000 + (peso - 10) * 50;
+      let kcal = 1500 + (peso - 20) * 20;
+      return Math.min(kcal, 2400);
+    }
+
+    function calcularBH() {
+      const peso = parseBH(document.getElementById('bh_peso').value);
+
+      const ev = acumuladosBH.ev;
+      const vo = acumuladosBH.vo;
+      const diurese = acumuladosBH.diurese;
+      const drenos = acumuladosBH.drenos;
+      const vomitos = acumuladosBH.vomitos;
+
+      let pesoCalUnidades = 0;
+      let pesoCalKcalTotal = 0;
+      const campoPesoCal = document.getElementById('bh_pesoCal');
+
+      if (peso > 10) {
+        pesoCalKcalTotal = calcHolliday(peso);
+        pesoCalUnidades = pesoCalKcalTotal / 100;
+        campoPesoCal.value = formatBH(pesoCalUnidades, 2) + " Cal";
+      } else {
+        campoPesoCal.value = "";
+      }
+
+      const totalEntradas = ev + vo;
+      const totalSaidas = diurese + drenos + vomitos;
+      const balancoMl = totalEntradas - totalSaidas;
+
+      const bhElement = document.getElementById('bh_displayVal');
+      const sinal = balancoMl > 0 ? "+" : "";
+      bhElement.innerText = `${sinal}${formatBH(balancoMl, 1)} mL`;
+      bhElement.style.color = (balancoMl > 0) ? "var(--success)" : (balancoMl < 0 ? "var(--danger)" : "var(--text)");
+
+      let diureseStr = "-- mL/kg/h";
+      if (peso > 0) {
+        const diureseMlKgH = diurese / peso / horasBalancho;
+        diureseStr = `${formatBH(diureseMlKgH, 2)} mL/kg/h`;
+        if (peso >= 30) {
+          const diureseMlH = diurese / horasBalancho;
+          diureseStr += ` (${formatBH(diureseMlH, 1)} mL/h)`;
+        }
+      }
+      document.getElementById('bh_taxaDiurese').innerText = `Diurese: ${diureseStr}`;
+
+      function formatEntradaItem(nome, volMl) {
+        if (volMl <= 0) return `${nome}: 0,0 mL`;
+        if (peso <= 0) {
+          return `${nome}: ${formatBH(volMl, 1)} mL`;
+        } else if (peso <= 10) {
+          const tx = volMl / peso;
+          return `${nome}: ${formatBH(volMl, 1)} mL (${formatBH(tx, 1)} mL/kg/${horasBalancho}h)`;
+        } else {
+          const txCal = volMl / pesoCalUnidades;
+          let resStr = `${nome}: ${formatBH(volMl, 1)} mL (${formatBH(txCal, 1)} mL/Kcal/${horasBalancho}h)`;
+          if (peso > 39) {
+            const txKgReal = volMl / peso;
+            resStr += ` [${formatBH(txKgReal, 1)} mL/kg]`;
+          }
+          return resStr;
+        }
+      }
+
+      const valPam = formatVitalBH(document.getElementById('bh_pam').value);
+      const valFc = formatVitalBH(document.getElementById('bh_fc').value);
+      const valFr = formatVitalBH(document.getElementById('bh_fr').value);
+      const valSatO2 = formatVitalBH(document.getElementById('bh_sat').value);
+      const valTemp = formatVitalBH(document.getElementById('bh_temp').value);
+      const valHgt = formatVitalBH(document.getElementById('bh_hgt').value);
+
+      let svParts = [];
+      if (valPam) svParts.push(`PAM: ${valPam} mmHg`);
+      if (valFc) svParts.push(`FC: ${valFc} bpm`);
+      if (valFr) svParts.push(`FR: ${valFr} irpm`);
+      if (valSatO2) svParts.push(`SatO2: ${valSatO2}%`);
+      if (valTemp) svParts.push(`Temp: ${valTemp} ºC`);
+      if (valHgt) svParts.push(`HGT: ${valHgt} mg/dl`);
+
+      let txt = `SINAIS VITAIS E BALANÇO HÍDRICO DAS ÚLTIMAS ${horasBalancho} HORAS:\n`;
+      if (svParts.length > 0) txt += svParts.join('    ') + '\n\n';
+
+      if (peso > 0) {
+        txt += `- Peso Corporal: ${formatBH(peso, 2)} kg\n`;
+        if (peso > 10) {
+          txt += `- Peso Calórico (Holliday-Segar): ${formatBH(pesoCalUnidades, 2)} Cal (${formatBH(pesoCalKcalTotal, 0)} kcal)\n`;
+        }
+      }
+
+      txt += `- Entradas: Total = ${formatBH(totalEntradas, 1)} mL\n`;
+      txt += `  * ${formatEntradaItem("EV", ev)}\n`;
+      txt += `  * ${formatEntradaItem("VO/SNG", vo)}\n`;
+
+      let saidasDetalhe = `Diurese: ${formatBH(diurese, 1)} mL`;
+      if (drenos > 0) saidasDetalhe += ` | Drenos: ${formatBH(drenos, 1)} mL`;
+      if (vomitos > 0) saidasDetalhe += ` | Outros: ${formatBH(vomitos, 1)} mL`;
+      txt += `- Saídas: Total = ${formatBH(totalSaidas, 1)} mL (${saidasDetalhe})\n`;
+
+      if (peso > 0) {
+        if (peso <= 10) {
+          const oferta = totalEntradas / peso;
+          txt += `- Oferta Hídrica Total: ${formatBH(oferta, 1)} mL/kg/${horasBalancho}h\n`;
+        } else {
+          const ofertaKcalUnidade = totalEntradas / pesoCalUnidades;
+          txt += `- Oferta Hídrica Total: ${formatBH(ofertaKcalUnidade, 1)} mL/Kcal/${horasBalancho}h\n`;
+          if (peso > 39) {
+            const ofertaKgReal = totalEntradas / peso;
+            txt += `- Oferta Hídrica (Peso Real): ${formatBH(ofertaKgReal, 1)} mL/kg/${horasBalancho}h\n`;
+          }
+        }
+        txt += `- Diurese: ${diureseStr}\n`;
+      } else {
+        txt += `(Preencha o peso para os cálculos de oferta hídrica e diurese)\n`;
+      }
+
+      txt += `- BH Final (${horasBalancho}h): ${sinal}${formatBH(balancoMl, 1)} mL`;
+      document.getElementById('bh_textoProntuario').value = txt;
+    }
+
+    function copiarProntuarioBH() {
+      copiarTexto('bh_textoProntuario');
+    }
+
+    /* =========================================================================
+       PCR & EMERGÊNCIA PEDIÁTRICA
+       ========================================================================= */
+    function formatPcrNum(val) {
+      if (isNaN(val) || val <= 0) return "0";
+      return Number.isInteger(val) ? val.toString() : val.toFixed(1);
+    }
+
+    function setPcrPeso(val) {
+      document.getElementById('pcr_peso').value = val;
+      calcularPCR();
+    }
+
+    function calcularPCR() {
+      const peso = parseFloat(document.getElementById('pcr_peso').value) || 0;
+      if (peso <= 0) return;
+
+      const c1 = Math.round(peso * 2);
+      const c2 = Math.round(peso * 4);
+      const adr = formatPcrNum(peso * 0.1);
+      const amio = formatPcrNum(Math.min(peso * 0.1, 6.0));
+      const lido = formatPcrNum(peso / 10);
+      const glic = formatPcrNum(peso * 2.0);
+      const bic = formatPcrNum(peso * 1.0);
+      const soro = Math.round(peso * 20);
+
+      const mida = formatPcrNum(peso * 0.2);
+      const ceta = formatPcrNum(peso * 0.2);
+      const roc = formatPcrNum(peso / 10);
+
+      const diaz = formatPcrNum(Math.min((0.3 * peso) / 5, 2.0));
+      const feni = formatPcrNum((15 * peso) / 50);
+      const nalox = formatPcrNum(Math.min((0.1 * peso) / 0.4, 5.0));
+
+      document.getElementById('pcr_choque1').textContent = c1;
+      document.getElementById('pcr_choque2').textContent = c2;
+      document.getElementById('pcr_adrenalina').textContent = adr;
+      document.getElementById('pcr_amiodarona').textContent = amio;
+      document.getElementById('pcr_lidocaina').textContent = lido;
+      document.getElementById('pcr_glicose').textContent = glic;
+      document.getElementById('pcr_bicarbonato').textContent = bic;
+      document.getElementById('pcr_soro').textContent = soro;
+
+      document.getElementById('pcr_midazolam').textContent = mida;
+      document.getElementById('pcr_cetamina').textContent = ceta;
+      document.getElementById('pcr_rocuronio').textContent = roc;
+
+      document.getElementById('pcr_diazepam').textContent = diaz;
+      document.getElementById('pcr_fenitoina').textContent = feni;
+      document.getElementById('pcr_naloxona').textContent = nalox;
+
+      document.getElementById('prt_peso').textContent = peso;
+      document.getElementById('prt_choque1').textContent = c1;
+      document.getElementById('prt_choque2').textContent = c2;
+      document.getElementById('prt_adrenalina').textContent = adr;
+      document.getElementById('prt_amiodarona').textContent = amio;
+      document.getElementById('prt_lidocaina').textContent = lido;
+      document.getElementById('prt_glicose').textContent = glic;
+      document.getElementById('prt_bicarbonato').textContent = bic;
+      document.getElementById('prt_soro').textContent = soro;
+
+      document.getElementById('prt_midazolam').textContent = mida;
+      document.getElementById('prt_cetamina').textContent = ceta;
+      document.getElementById('prt_rocuronio').textContent = roc;
+
+      document.getElementById('prt_diazepam').textContent = diaz;
+      document.getElementById('prt_fenitoina').textContent = feni;
+      document.getElementById('prt_naloxona').textContent = nalox;
+    }
+
+    function imprimirFolhaParada() {
+      calcularPCR();
+      window.print();
+    }
+
+    /* =========================================================================
+       FOTOTERAPIA NEONATAL
+       ========================================================================= */
+    const FOTO_SEM_RISCO = {
+      35:[8.5,10.6,12.5,14.2,15.6,16.8,18.6,18.7,18.8],
+      36:[9.0,11.2,13.2,14.8,16.3,17.5,19.3,19.4,19.5],
+      37:[9.5,11.7,13.8,15.4,16.9,18.1,20.0,20.1,20.2],
+      38:[10.0,12.3,14.4,16.0,17.5,18.8,20.7,20.8,20.9],
+      39:[10.5,12.8,15.0,16.6,18.1,19.5,21.0,21.1,21.2],
+      40:[11.0,13.3,15.5,17.0,18.5,19.8,21.2,21.3,21.4]
+    };
+    const FOTO_COM_RISCO = {
+      35:[6.9,8.9,10.6,12.2,13.5,14.6,16.1,16.3,16.4],
+      36:[7.4,9.4,11.2,12.8,14.2,15.4,17.0,17.1,17.2],
+      37:[8.0,10.0,11.8,13.5,14.9,16.1,17.9,18.0,18.1],
+      38:[8.5,10.5,12.4,14.0,15.4,16.6,18.2,18.3,18.4],
+      39:[8.5,10.5,12.4,14.0,15.4,16.6,18.2,18.3,18.4],
+      40:[8.5,10.5,12.4,14.0,15.4,16.6,18.2,18.3,18.4]
+    };
+    const EXS_SEM_RISCO = {
+      35:[16.4,17.9,19.4,20.7,21.8,22.9,24.5,24.7,24.9],
+      36:[17.5,19.1,20.6,21.9,23.1,24.1,25.5,25.7,25.9],
+      37:[18.7,20.3,21.8,23.1,24.2,25.2,26.6,26.8,27.0],
+      38:[19.8,21.4,22.8,24.0,25.0,25.9,27.0,27.2,27.4],
+      39:[19.8,21.4,22.8,24.0,25.0,25.9,27.0,27.2,27.4],
+      40:[19.8,21.4,22.8,24.0,25.0,25.9,27.0,27.2,27.4]
+    };
+    const EXS_COM_RISCO = {
+      35:[14.6,16.1,17.4,18.5,19.4,20.1,21.1,21.3,21.5],
+      36:[15.1,16.6,17.9,19.1,20.0,20.9,22.1,22.3,22.5],
+      37:[15.7,17.2,18.5,19.7,20.7,21.7,23.1,23.3,23.5],
+      38:[16.2,17.7,19.0,20.1,21.1,22.1,23.5,23.7,23.9],
+      39:[16.2,17.7,19.0,20.1,21.1,22.1,23.5,23.7,23.9],
+      40:[16.2,17.7,19.0,20.1,21.1,22.1,23.5,23.7,23.9]
+    };
+    const HORAS_AAP = [12, 24, 36, 48, 60, 72, 96, 120, 144];
+
+    function interpAap(arr, h) {
+      if (h <= HORAS_AAP[0]) return arr[0];
+      if (h >= HORAS_AAP[HORAS_AAP.length - 1]) return arr[arr.length - 1];
+      for (let i = 0; i < HORAS_AAP.length - 1; i++) {
+        if (h >= HORAS_AAP[i] && h <= HORAS_AAP[i + 1]) {
+          const a = arr[i], b = arr[i + 1];
+          const t = (h - HORAS_AAP[i]) / (HORAS_AAP[i + 1] - HORAS_AAP[i]);
+          return a + (b - a) * t;
+        }
+      }
+      return arr[0];
+    }
+
+    function calcularIctericia() {
+      const ig = parseFloat(document.getElementById('ict_ig').value);
+      const horas = parseFloat(document.getElementById('ict_horas').value);
+      const peso = parseFloat(document.getElementById('ict_peso').value);
+      const bt = parseFloat(document.getElementById('ict_bt').value);
+
+      if (isNaN(ig) || isNaN(horas) || isNaN(peso) || isNaN(bt)) {
+        alert("Preencha IG, horas de vida, peso e bilirrubina total.");
+        return;
+      }
+
+      let comRisco = false;
+      if (document.getElementById('ict_r_albumina').checked || document.getElementById('ict_r_hemolise').checked || document.getElementById('ict_r_sepse').checked || document.getElementById('ict_r_instab').checked) {
+        comRisco = true;
+      }
+
+      let conduta = "", badgeHtml = "", limFoto = 0, limExs = 0, refNome = "";
+
+      if (ig < 35) {
+        refNome = "Maisels 2012 (Prematuros < 35 semanas)";
+        if (ig < 28) { limFoto = 5.0; limExs = 11.0; }
+        else if (ig < 30) { limFoto = 6.0; limExs = 12.0; }
+        else if (ig < 32) { limFoto = 8.0; limExs = 13.0; }
+        else if (ig < 34) { limFoto = 10.0; limExs = 15.0; }
+        else { limFoto = 12.0; limExs = 17.0; }
+      } else {
+        const igInt = Math.min(40, Math.max(35, Math.floor(ig)));
+        refNome = `AAP 2022 (IG ${igInt} sem - ${comRisco ? 'COM risco de neurotoxicidade' : 'SEM fatores de risco'})`;
+        const fArr = comRisco ? FOTO_COM_RISCO[igInt] : FOTO_SEM_RISCO[igInt];
+        const eArr = comRisco ? EXS_COM_RISCO[igInt] : EXS_SEM_RISCO[igInt];
+        limFoto = interpAap(fArr, horas);
+        limExs = interpAap(eArr, horas);
+      }
+
+      if (bt >= limExs) {
+        conduta = "EXSANGUINEOTRANSFUSÃO IMEDIATA";
+        badgeHtml = `<span style="background:var(--danger); color:#fff; padding:4px 10px; border-radius:99px; font-weight:700;">🔴 EXSANGUINEOTRANSFUSÃO INDICADA</span>`;
+      } else if (bt >= (limExs - 2.0)) {
+        conduta = "ESCALONAMENTO DE CUIDADO / FOTOTERAPIA INTENSIVA";
+        badgeHtml = `<span style="background:var(--warning); color:#fff; padding:4px 10px; border-radius:99px; font-weight:700;">⚠️ ESCALONAMENTO DE CUIDADO (UTIN)</span>`;
+      } else if (bt >= limFoto) {
+        conduta = "FOTOTERAPIA INDICADA";
+        badgeHtml = `<span style="background:#eab308; color:#fff; padding:4px 10px; border-radius:99px; font-weight:700;">💡 FOTOTERAPIA INDICADA</span>`;
+      } else {
+        conduta = "NENHUM TRATAMENTO INDICADO NO MOMENTO";
+        badgeHtml = `<span style="background:var(--success); color:#fff; padding:4px 10px; border-radius:99px; font-weight:700;">✅ NENHUM TRATAMENTO INDICADO</span>`;
+      }
+
+      const resBox = document.getElementById('ict_resultadoBox');
+      resBox.innerHTML = `
+        <div style="margin-bottom:8px;">${badgeHtml}</div>
+        <div style="font-size:0.85rem; line-height:1.45;">
+          • <strong>Bilirrubina Aferida:</strong> ${bt.toFixed(1)} mg/dL<br>
+          • <strong>Limiar de Fototerapia:</strong> ${limFoto.toFixed(1)} mg/dL<br>
+          • <strong>Limiar de Exsanguíneo:</strong> ${limExs.toFixed(1)} mg/dL<br>
+          • <strong>Referência:</strong> ${refNome}<br>
+          • <strong>Conduta:</strong> <strong>${conduta}</strong>
+        </div>
+      `;
+      resBox.style.display = 'block';
+    }
+
+    /* =========================================================================
+       DISTÚRBIOS ELETROLÍTICOS & NEFROLOGIA
+       ========================================================================= */
+    function calcularNefrologia() {
+      const peso = parseFloat(document.getElementById('nef_peso').value) || 0;
+      const estatura = parseFloat(document.getElementById('nef_estatura').value) || 0;
+      const perfil = document.getElementById('nef_perfil').value;
+      const na = parseFloat(document.getElementById('nef_na').value);
+      const k = parseFloat(document.getElementById('nef_k').value);
+      const cl = parseFloat(document.getElementById('nef_cl').value);
+      const gli = parseFloat(document.getElementById('nef_gli').value);
+      const ca = parseFloat(document.getElementById('nef_ca').value);
+      const mg = parseFloat(document.getElementById('nef_mg').value);
+      const crS = parseFloat(document.getElementById('nef_crs').value);
+      const ph = parseFloat(document.getElementById('nef_ph').value);
+      const bic = parseFloat(document.getElementById('nef_bic').value);
+
+      if (peso <= 0) {
+        alert("Informe o peso do paciente.");
+        return;
+      }
+
+      let actFator = 0.6;
+      if (perfil === 'rn') actFator = 0.7;
+      if (perfil === 'adolescente_f') actFator = 0.5;
+
+      let html = `<div style="font-size:0.85rem; line-height:1.5;">`;
+      html += `<strong>Água Corporal Total (ACT):</strong> ${(peso * actFator).toFixed(1)} Litros (${(actFator * 100).toFixed(0)}% do peso)<br>`;
+
+      if (estatura > 0 && crS > 0) {
+        const kSchw = (perfil === 'rn') ? 0.45 : 0.55;
+        const clr = (estatura * kSchw) / crS;
+        html += `<strong>Clearance de Creatinina (Schwartz):</strong> ${clr.toFixed(1)} mL/min/1,73m²<br>`;
+      }
+
+      if (!isNaN(na)) {
+        let naReal = na;
+        if (!isNaN(gli) && gli > 100) {
+          naReal = na + 1.6 * ((gli - 100) / 100);
+          html += `<strong>Sódio Corrigido pela Glicemia:</strong> ${naReal.toFixed(1)} mEq/L (Na medido: ${na})<br>`;
+        }
+        if (naReal < 125) {
+          const defNa = (125 - naReal) * peso * 0.6;
+          const volNacl3 = defNa / 0.513;
+          html += `<div style="background:#fee2e2; border-left:4px solid var(--danger); padding:8px; margin:6px 0; border-radius:4px;">
+            <strong style="color:var(--danger);">HIPONATREMIA GRAVE (&lt; 125 mEq/L):</strong><br>
+            • Déficit de Na⁺ (alvo 125): ${defNa.toFixed(1)} mEq<br>
+            • Volume de NaCl 3%: <strong>${volNacl3.toFixed(1)} mL</strong> em infusão lenta monitorada.
+          </div>`;
+        } else if (naReal > 145) {
+          const defAguaL = 0.6 * peso * ((naReal - 140) / 140);
+          html += `<div style="background:#fffbeb; border-left:4px solid var(--warning); padding:8px; margin:6px 0; border-radius:4px;">
+            <strong style="color:var(--warning);">HIPERNATREMIA (&gt; 145 mEq/L):</strong><br>
+            • Déficit de Água Livre: <strong>${defAguaL.toFixed(2)} Litros</strong> (reduzir máx 10 a 12 mEq/L em 24h para evitar edema cerebral).
+          </div>`;
+        }
+      }
+
+      if (!isNaN(k)) {
+        if (k < 3.0) {
+          html += `<div style="background:#fee2e2; border-left:4px solid var(--danger); padding:8px; margin:6px 0; border-radius:4px;">
+            <strong style="color:var(--danger);">HIPOCALEMIA GRAVE (K: ${k} mEq/L):</strong><br>
+            • Taxa venosa segura: 0,3 a 0,5 mEq/kg/hora sob ECG contínuo.<br>
+            • Faixa horária: ${(0.3 * peso).toFixed(1)} a ${(0.5 * peso).toFixed(1)} mEq/hora.
+          </div>`;
+        } else if (k > 5.5) {
+          html += `<div style="background:#fee2e2; border-left:4px solid var(--danger); padding:8px; margin:6px 0; border-radius:4px;">
+            <strong style="color:var(--danger);">HIPERCALEMIA (K: ${k} mEq/L):</strong><br>
+            • Gluconato de Cálcio 10%: ${(0.5 * peso).toFixed(1)} a ${(1.0 * peso).toFixed(1)} mL EV em 10-15 min.<br>
+            • Solução Glico-Insulina: 0,5 g/kg de glicose + 0,1 UI/kg de insulina regular EV em 30 min.
+          </div>`;
+        }
+      }
+
+      if (!isNaN(ph) && !isNaN(bic)) {
+        if (ph < 7.20 || bic < 12) {
+          const defBic = (15 - bic) * peso * 0.3;
+          html += `<div style="background:#fee2e2; border-left:4px solid var(--danger); padding:8px; margin:6px 0; border-radius:4px;">
+            <strong style="color:var(--danger);">ACIDOSE METABÓLICA GRAVE (pH ${ph} | HCO₃ ${bic}):</strong><br>
+            • Déficit de Bicarbonato calculado: <strong>${defBic.toFixed(1)} mEq</strong> de Bicarbonato de Sódio 8,4% EV em 1 a 2 horas.
+          </div>`;
+        }
+        if (!isNaN(na) && !isNaN(cl)) {
+          const ag = na - (cl + bic);
+          html += `<strong>Anion Gap Sérico (Na - [Cl + HCO₃]):</strong> ${ag.toFixed(1)} mEq/L (Normal: 10 ± 2)<br>`;
+        }
+      }
+
+      html += `</div>`;
+      const res = document.getElementById('nef_resultadoBox');
+      res.innerHTML = html;
+      res.style.display = 'block';
+    }
+
+    /* =========================================================================
+       CALCULADORA DE DILUIÇÃO IV
+       ========================================================================= */
+    const BANCO_DILUICAO = [
+      { nome: "Acetilcisteína", comercial: "Flucistein® 10%", rec: "-", dil: "SG 5%", cU: "250 mL*", cM: "100 mL*", vel: "Infusão 1h", nU: null, nM: null, un: "mg" },
+      { nome: "Aciclovir", comercial: "Zovirax® 250mg FAP", rec: "10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "4 mg/mL", cM: "7 mg/mL", vel: "60 minutos", nU: 4, nM: 7, un: "mg" },
+      { nome: "Amicacina", comercial: "Sulfato de Amicacina 500mg/2mL", rec: "-", dil: "SF 0,9% ou SG 5%", cU: "5 mg/mL", cM: "10 mg/mL", vel: "60 a 120 minutos", nU: 5, nM: 10, un: "mg" },
+      { nome: "Aminofilina", comercial: "Aminofilina 24mg/mL", rec: "-", dil: "SF 0,9% ou SG 5%", cU: "1 mg/mL", cM: "25 mg/mL", vel: "Infusão em 60 minutos", nU: 1, nM: 25, un: "mg" },
+      { nome: "Amiodarona", comercial: "Atlansil® 150mg/3mL", rec: "-", dil: "SG 5% exclusivo", cU: "2 mg/mL", cM: "6 mg/mL (CVC)", vel: "IVD 3 min ou infusão > 60 min", nU: 2, nM: 6, un: "mg" },
+      { nome: "Ampicilina", comercial: "Amplacilina® 500/1000mg", rec: "2 a 3 mL AD", dil: "SF 0,9%", cU: "10 mg/mL", cM: "30 mg/mL", vel: "IVD 3-5 min ou infusão 15-30 min", nU: 10, nM: 30, un: "mg" },
+      { nome: "Ampicilina + Sulbactam", comercial: "Unasyn® 1,5g FAP", rec: "3,2 mL AD", dil: "SF 0,9% ou SG 5%", cU: "15 mg/mL", cM: "45 mg/mL", vel: "15 a 30 minutos", nU: 15, nM: 45, un: "mg" },
+      { nome: "Caspofungina", comercial: "Cancidas® 50mg", rec: "10,5 mL AD", dil: "SF 0,9%", cU: "0,2 mg/mL", cM: "0,5 mg/mL", vel: "60 minutos", nU: 0.2, nM: 0.5, un: "mg" },
+      { nome: "Cefazolina", comercial: "Kefazol® 1g FAP", rec: "10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "20 mg/mL", cM: "138 mg/mL", vel: "10 a 60 minutos", nU: 20, nM: 138, un: "mg" },
+      { nome: "Cefepima", comercial: "Maxcef® 1g FAP", rec: "10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "10 mg/mL", cM: "40 mg/mL", vel: "30 minutos", nU: 10, nM: 40, un: "mg" },
+      { nome: "Ceftazidima", comercial: "Fortaz® 1g FAP", rec: "10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "10 mg/mL", cM: "40 mg/mL", vel: "15 a 30 minutos", nU: 10, nM: 40, un: "mg" },
+      { nome: "Ceftriaxona", comercial: "Rocefin® 500mg/1g", rec: "5 a 10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "10 mg/mL", cM: "40 mg/mL", vel: "10 a 30 minutos", nU: 10, nM: 40, un: "mg" },
+      { nome: "Ciprofloxacina", comercial: "Cipro® 200mg/100mL", rec: "-", dil: "Solução pronta para uso", cU: "2 mg/mL", cM: "2 mg/mL", vel: "60 minutos", nU: 2, nM: 2, un: "mg" },
+      { nome: "Clindamicina", comercial: "Dalacin® 300mg/2mL", rec: "-", dil: "SF 0,9% ou SG 5%", cU: "6 mg/mL", cM: "18 mg/mL", vel: "10 a 60 minutos (máx 30mg/min)", nU: 6, nM: 18, un: "mg" },
+      { nome: "Dipirona", comercial: "Novalgina® 500mg/mL", rec: "-", dil: "SF 0,9% ou SG 5%", cU: "25 mg/mL", cM: "50 mg/mL", vel: "10 a 20 minutos", nU: 25, nM: 50, un: "mg" },
+      { nome: "Furosemida", comercial: "Lasix® 20mg/2mL", rec: "-", dil: "SF 0,9%", cU: "1 mg/mL", cM: "2 mg/mL", vel: "IVD 0,5 mg/kg/min ou 10-15 min", nU: 1, nM: 2, un: "mg" },
+      { nome: "Gentamicina", comercial: "Garamicina® 40mg/mL", rec: "-", dil: "SF 0,9% ou SG 5%", cU: "5 mg/mL", cM: "10 mg/mL", vel: "30 a 120 minutos", nU: 5, nM: 10, un: "mg" },
+      { nome: "Hidrocortisona", comercial: "Cortisonal® 100mg", rec: "2 mL AD", dil: "SF 0,9% ou SG 5%", cU: "1 mg/mL", cM: "5 mg/mL", vel: "20 a 30 minutos", nU: 1, nM: 5, un: "mg" },
+      { nome: "Meropenem", comercial: "Meronem® 1g FAP", rec: "20 mL AD", dil: "SF 0,9% ou SG 5%", cU: "1 mg/mL", cM: "20 mg/mL", vel: "15 a 30 minutos", nU: 1, nM: 2, un: "mg" },
+      { nome: "Oxacilina", comercial: "Staficilin® 500mg", rec: "5 mL AD", dil: "SF 0,9% ou SG 5%", cU: "10 mg/mL", cM: "40 mg/mL (CVC)", vel: "15 a 30 minutos", nU: 10, nM: 40, un: "mg" },
+      { nome: "Piperacilina + Tazobactam", comercial: "Tazocin® 4,5g", rec: "20 mL AD", dil: "SF 0,9% ou SG 5%", cU: "20 mg/mL", cM: "200 mg/mL", vel: "30 minutos", nU: 20, nM: 200, un: "mg" },
+      { nome: "Vancomicina", comercial: "Vancocina® 500mg", rec: "10 mL AD", dil: "SF 0,9% ou SG 5%", cU: "2,5 mg/mL", cM: "5 mg/mL", vel: "Mínimo 60 minutos", nU: 2.5, nM: 5, un: "mg" }
+    ];
+
+    let medDiluicaoAtivo = null;
+
+    function renderTabelaDiluicao(lista) {
+      const tbody = document.getElementById('corpoTabelaDiluicao');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      lista.forEach(m => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${m.nome}</strong><br><span style="font-size:0.75rem; color:var(--text-muted);">${m.comercial}</span></td>
+          <td>${m.rec}</td>
+          <td>${m.dil}</td>
+          <td><strong>${m.cU}</strong></td>
+          <td style="color:#b91c1c;"><strong>${m.cM}</strong></td>
+          <td>${m.vel}</td>
+          <td><button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick='iniciarCalculoDiluicao(${JSON.stringify(m)})'>Calcular</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filtrarTabelaDiluicao() {
+      const q = document.getElementById('filtroDiluicao').value.toLowerCase().trim();
+      const filtrados = BANCO_DILUICAO.filter(m => (m.nome + ' ' + m.comercial).toLowerCase().includes(q));
+      renderTabelaDiluicao(filtrados);
+    }
+
+    function iniciarCalculoDiluicao(med) {
+      medDiluicaoAtivo = med;
+      document.getElementById('dil_tituloAtivo').innerText = `Calculadora: ${med.nome}`;
+      document.getElementById('dil_subtituloAtivo').innerText = `${med.comercial} | Diluentes: ${med.dil} | Infusão: ${med.vel}`;
+      document.getElementById('dil_unidadeAtiva').innerText = med.un;
+      document.getElementById('dil_doseInput').value = '';
+      document.getElementById('dil_resultadosCard').style.display = 'none';
+      document.getElementById('boxCalcDiluicaoAtiva').style.display = 'block';
+      document.getElementById('dil_doseInput').focus();
+    }
+
+    function fecharCalcDiluicao() {
+      document.getElementById('boxCalcDiluicaoAtiva').style.display = 'none';
+      medDiluicaoAtivo = null;
+    }
+
+    function executarCalculoDiluicao() {
+      if (!medDiluicaoAtivo) return;
+      const dose = parseFloat(document.getElementById('dil_doseInput').value);
+      if (isNaN(dose) || dose <= 0) {
+        document.getElementById('dil_resultadosCard').style.display = 'none';
+        return;
+      }
+
+      const m = medDiluicaoAtivo;
+      let volUsualStr = '--';
+      let volMinStr = '--';
+      let vU = null, vM = null;
+
+      if (m.nU) {
+        vU = (dose / m.nU).toFixed(1);
+        volUsualStr = `${vU} mL`;
+        document.getElementById('dil_resConcUsual').innerText = `Conc. Usual: ${m.cU}`;
+      } else {
+        volUsualStr = m.cU;
+        document.getElementById('dil_resConcUsual').innerText = 'Volume tabelado';
+      }
+
+      if (m.nM) {
+        vM = (dose / m.nM).toFixed(1);
+        volMinStr = `${vM} mL`;
+        document.getElementById('dil_resConcMax').innerText = `Conc. Máx: ${m.cM}`;
+      } else {
+        volMinStr = m.cM;
+        document.getElementById('dil_resConcMax').innerText = 'Volume tabelado';
+      }
+
+      document.getElementById('dil_resVolUsual').innerText = volUsualStr;
+      document.getElementById('dil_resVolMax').innerText = volMinStr;
+
+      let recStr = m.rec !== '-' ? ` (após reconstituição em ${m.rec})` : '';
+      let pUsual = `${m.nome} ${dose} ${m.un} EV${recStr}. Diluir em ${vU ? vU + ' mL' : volUsualStr} de ${m.dil}. Infundir em ${m.vel}.`;
+      let pMin = `${m.nome} ${dose} ${m.un} EV${recStr} [RESTRIÇÃO HÍDRICA]. Diluir no volume mínimo de ${vM ? vM + ' mL' : volMinStr} de ${m.dil}. Infundir em ${m.vel}.`;
+
+      document.getElementById('dil_prescricaoUsual').value = pUsual;
+      document.getElementById('dil_prescricaoMinima').value = pMin;
+      document.getElementById('dil_resultadosCard').style.display = 'block';
+    }
+
+    /* =========================================================================
+       INFUSÃO CONTÍNUA
+       ========================================================================= */
+    const CONCS_INFUSAO = {
+      'adrenalina': { conc: 1, unid: 'mcg/kg/min' },
+      'noradrenalina': { conc: 1, unid: 'mcg/kg/min' },
+      'dobutamina': { conc: 12.5, unid: 'mcg/kg/min' },
+      'dopamina': { conc: 5, unid: 'mcg/kg/min' },
+      'milrinona': { conc: 1, unid: 'mcg/kg/min' },
+      'fentanil': { conc: 0.05, unid: 'mcg/kg/h' },
+      'precedex': { conc: 0.1, unid: 'mcg/kg/h' },
+      'midazolam': { conc: 5, unid: 'mg/kg/h' },
+      'cetamina': { conc: 50, unid: 'mg/kg/h' }
+    };
+
+    function aoTrocarDrogaInfusao() {
+      const sel = document.getElementById('inf_droga').value;
+      document.getElementById('inf_customBox').style.display = (sel === 'custom') ? 'block' : 'none';
+      calcularInfusao();
+    }
+
+    function calcularInfusao() {
+      const peso = parseFloat(document.getElementById('inf_peso').value) || 0;
+      const vazao = parseFloat(document.getElementById('inf_vazao').value) || 0;
+      const volDroga = parseFloat(document.getElementById('inf_volDroga').value) || 0;
+      const volDil = parseFloat(document.getElementById('inf_volDiluente').value) || 0;
+      const sel = document.getElementById('inf_droga').value;
+
+      let concEstoque = 1;
+      let unidadeAlvo = 'mcg/kg/min';
+      let nomeDroga = 'Infusão';
+
+      if (sel === 'custom') {
+        concEstoque = parseFloat(document.getElementById('inf_customConc').value) || 0;
+        unidadeAlvo = document.getElementById('inf_customUnid').value;
+        nomeDroga = document.getElementById('inf_customNome').value || 'Fármaco Personalizado';
+      } else {
+        concEstoque = CONCS_INFUSAO[sel].conc;
+        unidadeAlvo = CONCS_INFUSAO[sel].unid;
+        nomeDroga = document.getElementById('inf_droga').options[document.getElementById('inf_droga').selectedIndex].text.split(' (')[0];
+      }
+
+      document.getElementById('inf_lblDoseNome').innerText = `Dose Infundida de ${nomeDroga} (${unidadeAlvo})`;
+
+      if (peso <= 0 || vazao <= 0 || (volDroga + volDil) <= 0 || concEstoque <= 0) {
+        document.getElementById('inf_displayDoseUnica').innerText = `-- ${unidadeAlvo}`;
+        return;
+      }
+
+      const volTotal = volDroga + volDil;
+      const totalMg = volDroga * concEstoque;
+      const concFinalMgMl = totalMg / volTotal;
+
+      const mgH = vazao * concFinalMgMl;
+      const mgKgH = mgH / peso;
+      const mcgKgH = mgKgH * 1000;
+      const mcgKgMin = mcgKgH / 60;
+
+      let valorFinal = 0;
+      if (unidadeAlvo === 'mcg/kg/min') valorFinal = mcgKgMin.toFixed(3);
+      else if (unidadeAlvo === 'mcg/kg/h') valorFinal = mcgKgH.toFixed(3);
+      else valorFinal = mgKgH.toFixed(4);
+
+      document.getElementById('inf_displayDoseUnica').innerText = `${valorFinal} ${unidadeAlvo}`;
+      document.getElementById('inf_resDetalhes').innerText = `Solução: ${volTotal.toFixed(1)} mL | Concentração final: ${concFinalMgMl.toFixed(3)} mg/mL`;
+    }
+
+    /* =========================================================================
+       DOSES MEDICAMENTOS EM PEDIATRIA
+       ========================================================================= */
+    const BANCO_DROGAS_PED = [
+      { n:"Aciclovir", faixa:"30 a 60 mg/kg/dia", dDef: 10, i:"8/8h", fracionamento: 3, m:800, v:"EV", dil:"SF 0,9% ou SG 5%", t:"60 min", concU: 4, concM: 7 },
+      { n:"Amicacina", faixa:"15 a 20 mg/kg/dia", dDef: 15, i:"24/24h", fracionamento: 1, m:1000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"60 min", concU: 5, concM: 10 },
+      { n:"Ampicilina", faixa:"100 a 200 mg/kg/dia", dDef: 50, i:"6/6h", fracionamento: 4, m:2000, v:"EV", dil:"SF 0,9%", t:"20 min", concU: 10, concM: 30 },
+      { n:"Cefazolina", faixa:"50 a 100 mg/kg/dia", dDef: 25, i:"8/8h", fracionamento: 3, m:2000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 20, concM: 138 },
+      { n:"Cefepima", faixa:"100 a 150 mg/kg/dia", dDef: 50, i:"8/8h", fracionamento: 3, m:2000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 10, concM: 40 },
+      { n:"Ceftriaxona", faixa:"50 a 100 mg/kg/dia", dDef: 50, i:"24/24h", fracionamento: 1, m:2000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 10, concM: 40 },
+      { n:"Clindamicina", faixa:"20 a 40 mg/kg/dia", dDef: 10, i:"6/6h", fracionamento: 4, m:600, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 6, concM: 18 },
+      { n:"Dipirona", faixa:"10 a 25 mg/kg/dose", dDef: 15, i:"6/6h", fracionamento: 4, m:1000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"15 min", concU: 25, concM: 50 },
+      { n:"Furosemida", faixa:"0,5 a 2 mg/kg/dose", dDef: 1, i:"12/12h", fracionamento: 2, m:20, v:"EV", dil:"SF 0,9%", t:"10 min", concU: 1, concM: 2 },
+      { n:"Gentamicina", faixa:"5 a 7,5 mg/kg/dia", dDef: 7.5, i:"24/24h", fracionamento: 1, m:500, v:"EV", dil:"SF 0,9% ou SG 5%", t:"60 min", concU: 5, concM: 10 },
+      { n:"Meropenem", faixa:"60 a 120 mg/kg/dia", dDef: 20, i:"8/8h", fracionamento: 3, m:2000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 1, concM: 20 },
+      { n:"Midazolam", faixa:"0,05 a 0,15 mg/kg/dose", dDef: 0.1, i:"bolus / resgate", fracionamento: 1, m:5, v:"EV", dil:"SF 0,9%", t:"5 min", concU: 1, concM: 5 },
+      { n:"Oxacilina", faixa:"100 a 200 mg/kg/dia", dDef: 50, i:"6/6h", fracionamento: 4, m:2000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 10, concM: 40 },
+      { n:"Piperacilina + Tazobactam", faixa:"240 a 300 mg/kg/dia", dDef: 75, i:"6/6h", fracionamento: 4, m:4000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"30 min", concU: 20, concM: 200 },
+      { n:"Vancomicina", faixa:"40 a 60 mg/kg/dia", dDef: 15, i:"6/6h", fracionamento: 4, m:1000, v:"EV", dil:"SF 0,9% ou SG 5%", t:"60 min", concU: 2.5, concM: 5 }
+    ];
+
+    let drogaPedSelecionada = null;
+
+    function renderListaDrogasPed(lista) {
+      const box = document.getElementById('drg_lista');
+      if (!box) return;
+      box.innerHTML = '';
+      lista.forEach(d => {
+        const item = document.createElement('div');
+        item.style.cssText = 'padding:7px 10px; cursor:pointer; font-size:0.82rem; border-bottom:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;';
+        item.innerHTML = `<strong>${d.n}</strong><span style="color:var(--text-muted); font-size:0.75rem;">${d.faixa}</span>`;
+        item.onclick = () => {
+          drogaPedSelecionada = d;
+          document.querySelectorAll('#drg_lista div').forEach(el => el.style.background = '#fff');
+          item.style.background = '#eff6ff';
+          document.getElementById('drg_doseDesejada').value = d.dDef;
+        };
+        box.appendChild(item);
+      });
+    }
+
+    function filtrarDrogasIntermitentes() {
+      const q = document.getElementById('drg_busca').value.toLowerCase().trim();
+      renderListaDrogasPed(BANCO_DROGAS_PED.filter(d => d.n.toLowerCase().includes(q)));
+    }
+
+    function calcularDrogasIntermitentes() {
+      if (!drogaPedSelecionada) { alert('Selecione um medicamento da lista.'); return; }
+      const peso = parseFloat(document.getElementById('drg_peso').value);
+      if (isNaN(peso) || peso <= 0) { alert('Informe o peso do paciente.'); return; }
+
+      const d = drogaPedSelecionada;
+      const doseDesejada = parseFloat(document.getElementById('drg_doseDesejada').value);
+      if (isNaN(doseDesejada) || doseDesejada <= 0) { alert('Informe a dose desejada.'); return; }
+
+      const tipoDose = document.getElementById('drg_tipoDose').value;
+      
+      let dosePorDoseMg = 0;
+      if (tipoDose === 'dia') {
+        dosePorDoseMg = (peso * doseDesejada) / d.fracionamento;
+      } else {
+        dosePorDoseMg = peso * doseDesejada;
+      }
+
+      const acimaMax = (d.m && dosePorDoseMg > d.m);
+      const volUsual = (dosePorDoseMg / d.concU).toFixed(1);
+      const volMin = (dosePorDoseMg / d.concM).toFixed(1);
+
+      document.getElementById('drg_calcDetalhes').innerHTML = `
+        <strong>${d.n}</strong> — Faixa de Referência: <strong>${d.faixa}</strong><br>
+        Dose Aplicada: <strong>${doseDesejada} mg/kg/${tipoDose}</strong> &rarr; <strong>${dosePorDoseMg.toFixed(1)} mg por dose</strong> (Intervalo: ${d.i} | Via: ${d.v})<br>
+        ${d.m ? `Dose Máxima Absoluta de Referência: ${d.m} mg/dose ` + (acimaMax ? '<span style="color:#b91c1c; font-weight:700;">(⚠️ ACIMA DO LIMITE MÁXIMO)</span>' : '✅') : ''}
+      `;
+
+      const prescUsual = `${d.n} ${dosePorDoseMg.toFixed(1)} mg EV ${d.i}. Diluir em ${volUsual} mL de ${d.dil}. Correr em ${d.t}. [${doseDesejada} mg/kg/${tipoDose}, Peso: ${peso} kg].`;
+      const prescMin = `${d.n} ${dosePorDoseMg.toFixed(1)} mg EV ${d.i} [RESTRIÇÃO HÍDRICA]. Diluir em ${volMin} mL de ${d.dil}. Correr em ${d.t}. [${doseDesejada} mg/kg/${tipoDose}, Peso: ${peso} kg].`;
+
+      document.getElementById('drg_prescUsual').value = prescUsual;
+      document.getElementById('drg_prescMin').value = prescMin;
+      document.getElementById('drg_resultadoBox').style.display = 'block';
+    }
+
+    /* =========================================================================
+       PIM 2
+       ========================================================================= */
+    function calcularPim2() {
+      const sbp = parseFloat(document.getElementById('p2_sbp').value) || 120;
+      const pupils = parseInt(document.getElementById('p2_pupils').value) || 0;
+      const pao2 = parseFloat(document.getElementById('p2_pao2').value) || 0;
+      const fio2 = parseFloat(document.getElementById('p2_fio2').value) || 21;
+      const be = parseFloat(document.getElementById('p2_be').value) || 0;
+      const vent = parseInt(document.getElementById('p2_vent').value) || 0;
+      const elective = parseInt(document.getElementById('p2_elective').value) || 0;
+      const surgery = parseInt(document.getElementById('p2_surgery').value) || 0;
+      const bypass = parseInt(document.getElementById('p2_bypass').value) || 0;
+      const highrisk = parseInt(document.getElementById('p2_highrisk').value) || 0;
+      const lowrisk = parseInt(document.getElementById('p2_lowrisk').value) || 0;
+
+      let sbpVal = Math.abs(sbp - 120);
+      let o2Ratio = (pao2 > 0) ? ((100 * (fio2 / 100)) / pao2) : 0;
+      let beVal = Math.abs(be);
+
+      let logit = -4.8841 + (0.01395 * sbpVal) + (pupils ? 3.0791 : 0) + (0.2888 * o2Ratio) + (0.1040 * beVal) + (vent ? 1.3352 : 0) - (elective ? 0.9282 : 0) - (surgery ? 1.0244 : 0) - (bypass ? 0.3882 : 0) + (highrisk ? 1.6696 : 0) - (lowrisk ? 1.5883 : 0);
+
+      let prob = Math.exp(logit) / (1 + Math.exp(logit));
+      document.getElementById('p2_resLogit').innerText = logit.toFixed(4);
+      document.getElementById('p2_resMortality').innerText = `${(prob * 100).toFixed(2)}%`;
+    }
+
+    function copiarLaudoPim2() {
+      const mort = document.getElementById('p2_resMortality').innerText;
+      const logit = document.getElementById('p2_resLogit').innerText;
+      const sbp = document.getElementById('p2_sbp').value;
+      const be = document.getElementById('p2_be').value;
+
+      const txt = `ESCORE PIM 2 (Paediatric Index of Mortality 2):\n- Risco de Mortalidade Estimado: ${mort} (Logit: ${logit})\n- PAS: ${sbp} mmHg | Base Excess: ${be} mmol/L\n- Slater et al., 2003.`;
+      navigator.clipboard ? navigator.clipboard.writeText(txt).then(() => mostrarToast('Laudo PIM 2 copiado!')) : mostrarToast();
+    }
+
+    /* =========================================================================
+       INTERGROWTH-21st
+       ========================================================================= */
+    const IG_P = [3, 5, 10, 50, 90, 95, 97];
+    const IG_DATA = {
+      weight: {
+        M: { 33:[1.18,1.28,1.43,1.95,2.52,2.70,2.82], 34:[1.45,1.55,1.71,2.22,2.79,2.96,3.08], 35:[1.70,1.80,1.95,2.47,3.03,3.20,3.32], 36:[1.93,2.03,2.18,2.69,3.25,3.42,3.54], 37:[2.13,2.24,2.38,2.89,3.45,3.62,3.74], 38:[2.32,2.42,2.57,3.07,3.63,3.80,3.92], 39:[2.49,2.59,2.73,3.24,3.79,3.96,4.08], 40:[2.63,2.73,2.88,3.38,3.94,4.11,4.22], 41:[2.76,2.86,3.01,3.51,4.06,4.23,4.35], 42:[2.88,2.98,3.12,3.62,4.17,4.34,4.46] },
+        F: { 33:[1.20,1.29,1.41,1.86,2.35,2.51,2.61], 34:[1.47,1.55,1.68,2.13,2.64,2.79,2.90], 35:[1.71,1.79,1.92,2.38,2.89,3.05,3.16], 36:[1.92,2.01,2.14,2.60,3.12,3.28,3.39], 37:[2.11,2.20,2.33,2.80,3.32,3.49,3.60], 38:[2.28,2.37,2.50,2.97,3.51,3.67,3.78], 39:[2.42,2.51,2.65,3.13,3.66,3.83,3.94], 40:[2.55,2.64,2.78,3.26,3.80,3.97,4.08], 41:[2.65,2.75,2.89,3.37,3.92,4.09,4.20], 42:[2.74,2.84,2.98,3.46,4.01,4.19,4.30] }
+      },
+      length: {
+        M: { 33:[39.7,40.3,41.1,43.8,46.6,47.4,48.0], 34:[41.1,41.6,42.4,45.0,47.6,48.4,48.9], 35:[42.3,42.8,43.5,46.0,48.5,49.3,49.8], 36:[43.4,43.9,44.6,47.0,49.4,50.1,50.6], 37:[44.3,44.8,45.5,47.8,50.1,50.9,51.3], 38:[45.2,45.7,46.4,48.6,50.8,51.5,52.0], 39:[46.0,46.5,47.1,49.3,51.5,52.1,52.6], 40:[46.8,47.2,47.8,49.9,52.0,52.7,53.1], 41:[47.4,47.8,48.5,50.5,52.6,53.2,53.6], 42:[48.0,48.4,49.0,51.0,53.0,53.7,54.1] },
+        F: { 33:[39.8,40.3,41.0,43.4,45.7,46.4,46.9], 34:[41.0,41.5,42.2,44.6,46.8,47.5,47.9], 35:[42.1,42.6,43.3,45.6,47.8,48.4,48.9], 36:[43.1,43.6,44.3,46.5,48.6,49.3,49.7], 37:[44.0,44.5,45.1,47.3,49.4,50.0,50.4], 38:[44.8,45.2,45.9,48.0,50.1,50.7,51.1], 39:[45.5,45.9,46.6,48.7,50.7,51.3,51.7], 40:[46.1,46.5,47.2,49.2,51.2,51.8,52.2], 41:[46.7,47.1,47.7,49.8,51.7,52.3,52.7], 42:[47.2,47.6,48.2,50.2,52.2,52.7,53.1] }
+      },
+      hc: {
+        M: { 33:[28.2,28.6,29.1,30.9,32.7,33.3,33.6], 34:[28.9,29.3,29.8,31.5,33.2,33.8,34.1], 35:[29.6,29.9,30.4,32.0,33.7,34.2,34.6], 36:[30.2,30.5,30.9,32.5,34.2,34.7,35.0], 37:[30.7,31.0,31.5,33.0,34.6,35.1,35.4], 38:[31.2,31.5,32.0,33.5,35.0,35.5,35.8], 39:[31.7,32.0,32.4,33.9,35.4,35.9,36.2], 40:[32.2,32.4,32.9,34.3,35.8,36.3,36.6], 41:[32.6,32.9,33.3,34.7,36.2,36.6,36.9], 42:[33.0,33.3,33.7,35.1,36.5,37.0,37.2] },
+        F: { 33:[27.92,28.26,28.76,30.46,32.24,32.78,33.14], 34:[28.64,28.96,29.44,31.08,32.78,33.30,33.65], 35:[29.28,29.59,30.06,31.64,33.28,33.78,34.12], 36:[29.87,30.17,30.62,32.14,33.74,34.22,34.55], 37:[30.40,30.69,31.13,32.61,34.15,34.62,34.94], 38:[30.88,31.16,31.59,33.03,34.53,34.99,35.30], 39:[31.32,31.59,32.01,33.41,34.88,35.32,35.62], 40:[31.72,31.99,32.39,33.76,35.19,35.63,35.92], 41:[32.08,32.34,32.74,34.08,35.48,35.91,36.19], 42:[32.41,32.67,33.06,34.37,35.74,36.16,36.44] }
+      }
+    };
+
+    function igInterpRow(tbl, sex, ga) {
+      const gaClamp = Math.min(42.999, Math.max(33, ga));
+      const wL = Math.min(42, Math.max(33, Math.floor(gaClamp)));
+      const wH = Math.min(42, wL + 1);
+      const frac = (wH === wL) ? 0 : (gaClamp - wL);
+      return tbl[sex][wL].map((v, i) => v + (tbl[sex][wH][i] - v) * frac);
+    }
+
+    function igEstimatePct(row, val) {
+      if (val <= row[0]) {
+        const slope = (row[1] - row[0]) / (IG_P[1] - IG_P[0]);
+        return { pct: Math.max(0.1, IG_P[0] - (row[0] - val) / (slope || 0.0001)), belowMin: true };
+      }
+      if (val >= row[row.length - 1]) {
+        const slope = (row[row.length - 1] - row[row.length - 2]) / (IG_P[IG_P.length - 1] - IG_P[IG_P.length - 2]);
+        return { pct: Math.min(99.9, IG_P[IG_P.length - 1] + (val - row[row.length - 1]) / (slope || 0.0001)), aboveMax: true };
+      }
+      for (let i = 0; i < row.length - 1; i++) {
+        if (val >= row[i] && val <= row[i + 1]) {
+          const frac = (val - row[i]) / (row[i + 1] - row[i] || 0.0001);
+          return { pct: IG_P[i] + frac * (IG_P[i + 1] - IG_P[i]), belowMin: false, aboveMax: false };
+        }
+      }
+      return { pct: 50, belowMin: false, aboveMax: false };
+    }
+
+    function igClassifyGA(w, d) {
+      const tot = Math.round(w * 7 + (d || 0));
+      if (tot < 196) return { label: "Pré-termo extremo", range: "< 28 sem" };
+      if (tot <= 223) return { label: "Muito pré-termo", range: "28 a 31 sem" };
+      if (tot <= 237) return { label: "Pré-termo moderado", range: "32 a 33 sem" };
+      if (tot <= 258) return { label: "Pré-termo tardio", range: "34 a 36 sem" };
+      if (tot <= 272) return { label: "A termo precoce", range: "37 a 38 sem" };
+      if (tot <= 286) return { label: "A termo completo", range: "39 a 40 sem" };
+      if (tot <= 293) return { label: "A termo tardio", range: "41 sem" };
+      return { label: "Pós-termo", range: "≥ 42 sem" };
+    }
+
+    function calcularIntergrowth() {
+      const sex = document.getElementById('ig_sexo').value;
+      const w = parseFloat(document.getElementById('ig_sem').value) || 0;
+      const d = parseFloat(document.getElementById('ig_dias').value) || 0;
+      const pesoG = parseFloat(document.getElementById('ig_peso').value) || 0;
+      const comp = parseFloat(document.getElementById('ig_comp').value) || 0;
+      const pc = parseFloat(document.getElementById('ig_pc').value) || 0;
+
+      const cont = document.getElementById('ig_resultadoContainer');
+      if (w < 20) { cont.style.display = 'none'; return; }
+      cont.style.display = 'block';
+
+      const gaDec = w + d / 7;
+      const inRange = (gaDec >= 33 && gaDec <= 42.999);
+      const gaCat = igClassifyGA(w, d);
+
+      document.getElementById('ig_gaBanner').innerHTML = `
+        <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Classificação IG</div>
+        <div style="font-size:1.1rem; font-weight:800;">${gaCat.label} (${gaCat.range})</div>
+        ${!inRange ? '<div style="color:#b91c1c; font-size:0.75rem; margin-top:2px;">⚠️ Válido de 33+0 a 42+6 sem.</div>' : ''}
+      `;
+
+      let cardsHtml = '';
+      let resPeso = null, resComp = null, resPc = null;
+      function fmtP(est) { return est.belowMin ? '< P3' : (est.aboveMax ? '> P97' : `≈ P${est.pct.toFixed(0)}`); }
+
+      if (inRange && pesoG > 0) {
+        const row = igInterpRow(IG_DATA.weight, sex, gaDec);
+        const est = igEstimatePct(row, pesoG / 1000);
+        const cls = est.pct < 10 ? 'PIG' : (est.pct > 90 ? 'GIG' : 'AIG');
+        resPeso = { est, cls, val: pesoG };
+        cardsHtml += `<div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; justify-content:space-between;"><div><div style="font-size:0.7rem; color:var(--text-muted);">PESO</div><div style="font-size:1rem; font-weight:800;">${pesoG} g</div></div><div style="text-align:right;"><strong>${fmtP(est)}</strong> &rarr; ${cls}</div></div>`;
+      }
+      if (inRange && comp > 0) {
+        const row = igInterpRow(IG_DATA.length, sex, gaDec);
+        const est = igEstimatePct(row, comp);
+        resComp = { est, val: comp };
+        cardsHtml += `<div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; justify-content:space-between;"><div><div style="font-size:0.7rem; color:var(--text-muted);">COMPRIMENTO</div><div style="font-size:1rem; font-weight:800;">${comp} cm</div></div><div style="text-align:right;"><strong>${fmtP(est)}</strong></div></div>`;
+      }
+      if (inRange && pc > 0) {
+        const row = igInterpRow(IG_DATA.hc, sex, gaDec);
+        const est = igEstimatePct(row, pc);
+        resPc = { est, val: pc };
+        cardsHtml += `<div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px; display:flex; justify-content:space-between;"><div><div style="font-size:0.7rem; color:var(--text-muted);">PERÍMETRO CEFÁLICO</div><div style="font-size:1rem; font-weight:800;">${pc} cm</div></div><div style="text-align:right;"><strong>${fmtP(est)}</strong></div></div>`;
+      }
+
+      document.getElementById('ig_cardsList').innerHTML = cardsHtml;
+
+      let laudo = `LAUDO ANTROPOMÉTRICO (INTERGROWTH-21st):\n- Sexo: ${sex === 'M' ? 'Masc' : 'Fem'} | IG: ${w} sem + ${d} d (${gaCat.label})\n`;
+      if (resPeso) laudo += `- Peso: ${resPeso.val} g [${fmtP(resPeso.est)}] -> ${resPeso.cls}\n`;
+      if (resComp) laudo += `- Comprimento: ${resComp.val} cm [${fmtP(resComp.est)}]\n`;
+      if (resPc) laudo += `- PC: ${resPc.val} cm [${fmtP(resPc.est)}]\n`;
+      document.getElementById('ig_resumoTexto').value = laudo;
+    }
+
+    /* =========================================================================
+       TIG & ELETRÓLITOS NEONATAIS
+       ========================================================================= */
+    function obterFaixaFluidoSBP(peso, dia, tipo) {
+      if (tipo === 'termo') {
+        if (dia == 1) return [40, 60];
+        if (dia == 2) return [50, 70];
+        if (dia == 3) return [60, 80];
+        if (dia == 4) return [60, 100];
+        if (dia == 5) return [100, 140];
+        return [140, 160];
+      }
+      if (peso > 1.5) {
+        if (dia == 1) return [60, 80];
+        if (dia == 2) return [80, 100];
+        if (dia == 3) return [100, 120];
+        if (dia == 4) return [120, 140];
+        if (dia == 5) return [140, 160];
+        return [140, 160];
+      } else {
+        if (dia == 1) return [70, 90];
+        if (dia == 2) return [90, 110];
+        if (dia == 3) return [110, 130];
+        if (dia == 4) return [130, 150];
+        return [140, 160];
+      }
+    }
+
+    function obterLimitesEletrolitosSBP(peso, dia) {
+      if (dia <= 5) {
+        if (dia <= 2) return { naMin: 0, naMax: 2, kMin: 0, kMax: 3, clMin: 0, clMax: 3 };
+        if (dia == 3) return { naMin: 0, naMax: (peso < 1.5 ? 5 : 3), kMin: 0, kMax: 3, clMin: 0, clMax: 3 };
+        return { naMin: 2, naMax: 5, kMin: 2, kMax: 3, clMin: 2, clMax: 5 };
+      }
+      return { naMin: 2, naMax: 5, kMin: 1, kMax: 3, clMin: 2, clMax: 5 };
+    }
+
+    function atualizarTigPorTaxa() {
+      const peso = parseFloat(document.getElementById('tig_peso').value) || 0;
+      const taxa = parseFloat(document.getElementById('tig_taxaHidrica').value) || 0;
+      if (peso > 0 && taxa > 0) document.getElementById('tig_volTotal').value = (peso * taxa).toFixed(1);
+      calcularTig();
+    }
+
+    function calcularTig(manual = false) {
+      const peso = parseFloat(document.getElementById('tig_peso').value) || 0;
+      const dia = parseInt(document.getElementById('tig_dia').value) || 1;
+      const tig = parseFloat(document.getElementById('tig_desejada').value) || 0;
+      const tipo = document.getElementById('tig_tipo').value;
+
+      if (peso > 0) {
+        const f = obterFaixaFluidoSBP(peso, dia, tipo);
+        document.getElementById('tig_sugestaoSBP').innerText = `💡 Sugestão SBP: ${f[0]} a ${f[1]} mL/kg/dia`;
+      }
+
+      let taxa = parseFloat(document.getElementById('tig_taxaHidrica').value) || 0;
+      let vt = manual ? (parseFloat(document.getElementById('tig_volTotal').value) || 0) : (peso * taxa);
+      if (manual && peso > 0 && vt > 0) document.getElementById('tig_taxaHidrica').value = (vt / peso).toFixed(1);
+      else if (vt > 0) document.getElementById('tig_volTotal').value = vt.toFixed(1);
+
+      if (peso <= 0 || tig <= 0 || vt <= 0) return;
+
+      const glicoseTotal = tig * peso * 1.44;
+      const vG50 = (glicoseTotal - (vt * 0.05)) / 0.45;
+      const vSg5 = vt - vG50;
+
+      if (vG50 >= 0 && vSg5 >= 0) {
+        document.getElementById('tig_resSg5').innerText = `${vSg5.toFixed(1)} mL`;
+        document.getElementById('tig_resG50').innerText = `${vG50.toFixed(1)} mL`;
+        document.getElementById('tig_resCg').innerText = `${((glicoseTotal / vt) * 100).toFixed(1)} %`;
+      }
+
+      const lim = obterLimitesEletrolitosSBP(peso, dia);
+      document.getElementById('tig_alvoNa').innerText = `${lim.naMin}-${lim.naMax}`;
+      document.getElementById('tig_absNa').innerText = `${(lim.naMin * peso).toFixed(1)}-${(lim.naMax * peso).toFixed(1)} mmol`;
+      document.getElementById('tig_alvoK').innerText = `${lim.kMin}-${lim.kMax}`;
+      document.getElementById('tig_absK').innerText = `${(lim.kMin * peso).toFixed(1)}-${(lim.kMax * peso).toFixed(1)} mmol`;
+      document.getElementById('tig_alvoCl').innerText = `${lim.clMin}-${lim.clMax}`;
+      document.getElementById('tig_absCl').innerText = `${(lim.clMin * peso).toFixed(1)}-${(lim.clMax * peso).toFixed(1)} mmol`;
+    }
+
+    /* =========================================================================
+       CATETERISMO UMBILICAL
+       ========================================================================= */
+    const POP_CATETER = {
+      9:  { baixo: 5.0, alto: 9.0,  venoso: 5.7 }, 10: { baixo: 5.5, alto: 10.5, venoso: 6.5 },
+      11: { baixo: 6.3, alto: 11.5, venoso: 7.2 }, 12: { baixo: 7.0, alto: 13.0, venoso: 8.0 },
+      13: { baixo: 7.8, alto: 14.0, venoso: 8.5 }, 14: { baixo: 8.5, alto: 15.0, venoso: 9.5 },
+      15: { baixo: 9.3, alto: 16.5, venoso: 10.0 }, 16: { baixo: 10.0, alto: 17.5, venoso: 10.5 },
+      17: { baixo: 11.0, alto: 19.0, venoso: 11.5 }
+    };
+
+    function calcularCateterPeso() {
+      const peso = parseFloat(document.getElementById('cat_peso').value) || 0;
+      if (peso <= 0) return;
+      const ombroEst = Math.round((((3 * peso) + 9) / 2 + 1) * 0.295);
+      const chave = Math.max(9, Math.min(17, ombroEst));
+      const d = POP_CATETER[chave];
+      document.getElementById('cat_resVenoso').innerText = `${d.venoso.toFixed(1)} cm*`;
+      document.getElementById('cat_resArtAlto').innerText = `${d.alto.toFixed(1)} cm*`;
+      document.getElementById('cat_resArtBaixo').innerText = `${d.baixo.toFixed(1)} cm*`;
+    }
+
+    function calcularCateterOmbro() {
+      const cm = parseInt(document.getElementById('cat_ombro').value);
+      if (!cm || !POP_CATETER[cm]) return;
+      const d = POP_CATETER[cm];
+      document.getElementById('cat_resVenoso').innerText = `${d.venoso.toFixed(1)} cm`;
+      document.getElementById('cat_resArtAlto').innerText = `${d.alto.toFixed(1)} cm`;
+      document.getElementById('cat_resArtBaixo').innerText = `${d.baixo.toFixed(1)} cm`;
+    }
+
+    /* =========================================================================
+       INICIALIZAÇÃO DO HUB NO ARRANQUE
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      try { if (typeof calcularBH === 'function') calcularBH(); } catch(e) {}
+      try { if (typeof renderTabelaDiluicao === 'function' && typeof BANCO_DILUICAO !== 'undefined') renderTabelaDiluicao(BANCO_DILUICAO); } catch(e) {}
+      try { if (typeof calcularInfusao === 'function') calcularInfusao(); } catch(e) {}
+      try { if (typeof renderListaDrogasPed === 'function' && typeof BANCO_DROGAS_PED !== 'undefined') renderListaDrogasPed(BANCO_DROGAS_PED); } catch(e) {}
+      try { if (typeof calcularPim2 === 'function') calcularPim2(); } catch(e) {}
+      try { if (typeof calcularIntergrowth === 'function') calcularIntergrowth(); } catch(e) {}
+      try { if (typeof calcularTig === 'function') calcularTig(); } catch(e) {}
+      try { if (typeof calcularPCR === 'function') calcularPCR(); } catch(e) {}
+
+      const dInput = document.getElementById('exameData');
+      const hInput = document.getElementById('exameHora');
+      if (dInput && hInput) {
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2, '0');
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const aaaa = now.getFullYear();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        dInput.value = `${dd}/${mm}/${aaaa}`;
+        hInput.value = `${hh}:${min}`;
+      }
+
+      const linkInput = document.getElementById('linkGemPersonalizado');
+      if (linkInput) {
+        const savedGem = localStorage.getItem('hub_gem_link');
+        if (savedGem) linkInput.value = savedGem;
+      }
+    });
+  </script>
+</body>
+</html>
